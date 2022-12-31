@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <RootNamespace>MacOxygeneCloudJukebox</RootNamespace>
+    <ProjectGuid>{2709D1DC-2482-42A6-BBEB-43CE2ECD6CF5}</ProjectGuid>
+    <OutputType>Executable</OutputType>
+    <AssemblyName>MacOxygeneCloudJukebox</AssemblyName>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <SDK>macOS</SDK>
+    <MangleTypeNames>True</MangleTypeNames>
+    <EntitlementsFile>Entitlements.entitlements</EntitlementsFile>
+    <DefaultUses>RemObjects.Elements.RTL</DefaultUses>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <Optimize>False</Optimize>
+    <OutputPath>.\Bin\Debug</OutputPath>
+    <ConditionalDefines>DEBUG;TRACE;</ConditionalDefines>
+    <GenerateDebugInfo>True</GenerateDebugInfo>
+    <EnableAsserts>True</EnableAsserts>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>.\Bin\Release</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Foundation" />
+    <Reference Include="rtl" />
+    <Reference Include="libToffee" />
+    <Reference Include="libElements" />
+    <Reference Include="libsqlite3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.pas" />
+    <None Include="Entitlements.entitlements" />
+    <Compile Include="PropertyValue.pas" />
+    <Compile Include="PropertyList.pas" />
+    <Compile Include="PropertySet.pas" />
+    <Compile Include="FileMetadata.pas" />
+    <Compile Include="SongMetadata.pas" />
+    <Compile Include="JukeboxOptions.pas" />
+    <Compile Include="ArgumentParser.pas" />
+    <Compile Include="StorageSystem.pas" />
+    <Compile Include="FSStorageSystem.pas" />
+    <Compile Include="JBUtils.pas" />
+    <Compile Include="Utils.pas" />
+    <Compile Include="StringSet.pas" />
+    <Compile Include="JukeboxDB.pas" />
+    <Compile Include="Jukebox.pas" />
+    <Compile Include="JukeboxMain.pas" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
+</Project>
