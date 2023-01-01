@@ -655,6 +655,8 @@ begin
     song.AlbumUid := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 13));
 
     ResultSongs.Add(song);
+    rc := libsqlite3.sqlite3_step(Statement);  // Fatal error in GC - Too many heap sections occurs on here
+
   end;
 
   result := ResultSongs;
