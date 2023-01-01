@@ -13,8 +13,12 @@ type
     ListCommands: List<String>;
 
   public
+    const TypeBool = 'bool';
+    const TypeInt = 'int';
+    const TypeString = 'string';
+
     constructor();
-    method AddOption(O: String; OptionType: String; Help: String);
+    method AddOption(O: String; OptionType: String; Help: String): Boolean;
     method AddOptionalBoolFlag(Flag: String; Help: String);
     method AddOptionalIntArgument(Arg: String; Help: String);
     method AddOptionalStringArgument(Arg: String; Help: String);
@@ -42,37 +46,46 @@ end;
 
 //*******************************************************************************
 
-method ArgumentParser.AddOption(O: String; OptionType: String; Help: String);
+method ArgumentParser.AddOption(O: String; OptionType: String; Help: String): Boolean;
+var
+  OptionAdded: Boolean;
 begin
-  DictAllReservedWords[O] := OptionType;
+  OptionAdded := true;
 
-  if OptionType = "bool" then
+  if OptionType = TypeBool then
     DictBoolOptions[O] := Help
-  else if OptionType = "int" then
+  else if OptionType = TypeInt then
     DictIntOptions[O] := Help
-  else if OptionType = "string" then
-    DictStringOptions[O] := Help;
+  else if OptionType = TypeString then
+    DictStringOptions[O] := Help
+  else
+    OptionAdded := false;
+
+  if OptionAdded then
+    DictAllReservedWords[O] := OptionType;
+
+  result := OptionAdded;
 end;
 
 //*******************************************************************************
 
 method ArgumentParser.AddOptionalBoolFlag(Flag: String; Help: String);
 begin
-  AddOption(Flag, "bool", Help);
+  AddOption(Flag, TypeBool, Help);
 end;
 
 //*******************************************************************************
 
 method ArgumentParser.AddOptionalIntArgument(Arg: String; Help: String);
 begin
-  AddOption(Arg, "int", Help);
+  AddOption(Arg, TypeInt, Help);
 end;
 
 //*******************************************************************************
 
 method ArgumentParser.AddOptionalStringArgument(Arg: String; Help: String);
 begin
-  AddOption(Arg, "string", Help);
+  AddOption(Arg, TypeString, Help);
 end;
 
 //*******************************************************************************
@@ -114,11 +127,11 @@ begin
     if DictAllReservedWords.ContainsKey(Arg) then begin
       ArgType := DictAllReservedWords[Arg];
       Arg := Arg.Substring(2);
-      if ArgType = "bool" then begin
+      if ArgType = TypeBool then begin
         //writeLn(String.Format("adding key={0} value=true", Arg));
         ps.Add(Arg, new PropertyValue(true));
       end
-      else if ArgType = "int" then begin
+      else if ArgType = TypeInt then begin
         inc(I);
         if I < NumArgs then begin
           NextArg := Args[I];
@@ -132,7 +145,7 @@ begin
           // missing int value
         end;
       end
-      else if ArgType = "string" then begin
+      else if ArgType = TypeString then begin
         inc(I);
         if I < NumArgs then begin
           NextArg := Args[I];
