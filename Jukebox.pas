@@ -899,30 +899,18 @@ begin
       Args.Add(SongFilePath);
 
       const Env = new Dictionary<String,String>();
-      const WorkingDir = Environment.CurrentDirectory;
 
-      //AudioPlayerProcess := new Process(AudioPlayerExeFileName,
-      //                                  Args,
-      //                                  Env,
-      //                                  WorkingDir);
-
-      if AudioPlayerProcess.Start() then begin
-        StartedAudioPlayer := true;
-        AudioPlayerProcess.WaitFor();
-        ExitCode := AudioPlayerProcess.ExitCode;
-        AudioPlayerProcess := nil;
-      end
-      else begin
-        writeLn("error: unable to start audio player");
-        AudioPlayerExeFileName := "";
-        AudioPlayerCommandArgs := "";
-      end;
+      AudioPlayerProcess := new Process();
+      ExitCode := AudioPlayerProcess.Run(AudioPlayerExeFileName,
+                                         Args,
+                                         Env,
+                                         SongPlayDirPath);
 
       // if the audio player failed or is not present, just sleep
       // for the length of time that audio would be played
-      if (not StartedAudioPlayer) and (ExitCode <> 0) then begin
+      //if (not StartedAudioPlayer) and (ExitCode <> 0) then begin
         //TimeSleepSeconds(SongPlayLengthSeconds);
-      end;
+      //end;
     end
     else begin
       // we don't know about an audio player, so simulate a
@@ -1052,16 +1040,15 @@ begin
     if DebugPrint then begin
       writeLn("deleting existing files in song-play directory");
     end;
-    Utils.DeleteFilesInDirectory(SongPlayDirPath);
+    //Utils.DeleteFilesInDirectory(SongPlayDirPath);
   end;
 
   SongIndex := 0;
   //InstallSignalHandlers();
 
-  //TODO: osId := runtime.GOOS
-  var osId := "";
-  if osId.StartsWith("darwin") then begin
-    AudioPlayerExeFileName := "afplay";
+  var osId := RemObjects.Elements.RTL.Environment.OSName;
+  if osId.StartsWith("macOS") then begin
+    AudioPlayerExeFileName := "/usr/bin/afplay";
     AudioPlayerCommandArgs := "";
   end
   else if osId.StartsWith("linux") or
