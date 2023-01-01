@@ -30,12 +30,12 @@
 	<string>/Users/paul/Library/Application Support/RemObjects Software/EBuild/Obj/MacOxygeneCloudJukebox-A018A8D4429CBA5614FB079AEDB7D7B0FB1FB7C9/Release/FinalOutput.xml</string>
 	<key>FolderExpanded_MacOxygeneCloudJukebox_file:///Users/paul/Documents/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/Documents/MacOxygeneCloudJukebox/</key>
 	<true/>
+	<key>FolderExpanded_MacOxygeneCloudJukebox_file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/</key>
+	<true/>
 	<key>NavigationPaneActiveTab</key>
 	<integer>0</integer>
 	<key>SelectedNode</key>
-	<string>stackframe://[thread://[debugsession://11]-13]-3</string>
-	<key>SelectedPrimaryNode</key>
-	<string>file:///Users/paul/Documents/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/Documents/MacOxygeneCloudJukebox/Jukebox.pas</string>
+	<string>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/JukeboxDB.pas</string>
 	<key>ViewMetaData</key>
 	<dict>
 		<key>file:///Users/paul/Documents/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/Documents/MacOxygeneCloudJukebox/ArgumentParser.pas</key>
@@ -406,6 +406,29 @@
 			<key>SelectionStartLine</key>
 			<integer>-1</integer>
 		</dict>
+		<key>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/Jukebox.pas</key>
+		<dict>
+			<key>CursorX</key>
+			<integer>0</integer>
+			<key>CursorY</key>
+			<integer>0</integer>
+			<key>ScrollX</key>
+			<real>0.0</real>
+			<key>ScrollY</key>
+			<real>15</real>
+			<key>SelectionCursorUndecided</key>
+			<false/>
+			<key>SelectionEndColumn</key>
+			<integer>0</integer>
+			<key>SelectionEndLine</key>
+			<integer>0</integer>
+			<key>SelectionIsLinear</key>
+			<false/>
+			<key>SelectionStartColumn</key>
+			<integer>0</integer>
+			<key>SelectionStartLine</key>
+			<integer>-1</integer>
+		</dict>
 		<key>stackframe://[thread://[debugsession://8]-5]-2</key>
 		<dict>
 			<key>CursorX</key>
@@ -433,7 +456,7 @@
 	<key>Window_Height</key>
 	<real>846</real>
 	<key>Window_Width</key>
-	<real>1787</real>
+	<real>1485</real>
 	<key>Window_X</key>
 	<real>0.0</real>
 	<key>Window_Y</key>
