@@ -9,6 +9,8 @@ type
     DebugMode: Boolean;
 
   public
+    const MetadataFileSuffix = '.meta';
+
     constructor(aRootDir: String; aDebugMode: Boolean);
     method Enter: Boolean; override;
     method Leave; override;
@@ -150,7 +152,7 @@ begin
     const ContainerDir = Utils.PathJoin(RootDir, ContainerName);
     if Utils.DirectoryExists(ContainerDir) then begin
       const ObjectPath = Utils.PathJoin(ContainerDir, ObjectName);
-      const MetaPath = ObjectPath + ".meta";
+      const MetaPath = ObjectPath + MetadataFileSuffix;
       if Utils.FileExists(MetaPath) then begin
         RetrievedMetadata := DictProps.ReadFromFile(MetaPath);
       end;
@@ -185,7 +187,7 @@ begin
         end;
         if Headers <> nil then begin
           if Headers.Count() > 0 then begin
-            const MetaPath = ObjectPath + ".meta";
+            const MetaPath = ObjectPath + MetadataFileSuffix;
             Headers.WriteToFile(MetaPath);
           end;
         end;
@@ -240,7 +242,7 @@ begin
                                 ContainerName,
                                 ObjectName));
         end;
-        const MetaPath = ObjectPath + ".meta";
+        const MetaPath = ObjectPath + MetadataFileSuffix;
         if Utils.FileExists(MetaPath) then begin
           Utils.DeleteFile(MetaPath);
         end;

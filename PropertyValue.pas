@@ -4,7 +4,7 @@ interface
 
 type
   PropertyValue = public class
-  public
+  private
     DataType: String;
     IntValue: Integer;
     LongValue: Int64;
@@ -13,6 +13,14 @@ type
     StringValue: String;
     DoubleValue: Real;
     IsNullValue: Boolean;
+
+  public
+    const TypeInt = "Int";
+    const TypeLong = "Long";
+    const TypeULong = "ULong";
+    const TypeBool = "Bool";
+    const TypeString = "String";
+    const TypeDouble = "Double";
 
     constructor(aIntValue: Integer);
     constructor(aLongValue: Int64);
@@ -48,7 +56,7 @@ implementation
 
 constructor PropertyValue(aIntValue: Integer);
 begin
-  DataType := "Int";
+  DataType := TypeInt;
   IntValue := aIntValue;
   LongValue := 0;
   ULongValue := 0;
@@ -62,7 +70,7 @@ end;
 
 constructor PropertyValue(aLongValue: Int64);
 begin
-  DataType := "Long";
+  DataType := TypeLong;
   IntValue := 0;
   LongValue := aLongValue;
   ULongValue := 0;
@@ -76,7 +84,7 @@ end;
 
 constructor PropertyValue(aULongValue: UInt64);
 begin
-  DataType := "ULong";
+  DataType := TypeULong;
   IntValue := 0;
   LongValue := 0;
   ULongValue := aULongValue;
@@ -90,7 +98,7 @@ end;
 
 constructor PropertyValue(aBoolValue: Boolean);
 begin
-  DataType := "Bool";
+  DataType := TypeBool;
   IntValue := 0;
   LongValue := 0;
   ULongValue := 0;
@@ -104,7 +112,7 @@ end;
 
 constructor PropertyValue(aStringValue: String);
 begin
-  DataType := "String";
+  DataType := TypeString;
   IntValue := 0;
   LongValue := 0;
   ULongValue := 0;
@@ -118,7 +126,7 @@ end;
 
 constructor PropertyValue(aDoubleValue: Real);
 begin
-  DataType := "Double";
+  DataType := TypeDouble;
   IntValue := 0;
   LongValue := 0;
   ULongValue := 0;
@@ -146,42 +154,42 @@ end;
 
 method PropertyValue.IsInt(): Boolean;
 begin
-  result := DataType = "Int";
+  result := DataType = TypeInt;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsLong(): Boolean;
 begin
-  result := DataType = "Long";
+  result := DataType = TypeLong;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsULong(): Boolean;
 begin
-  result := DataType = "ULong";
+  result := DataType = TypeULong;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsBool(): Boolean;
 begin
-  result := DataType = "Bool";
+  result := DataType = TypeBool;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsString(): Boolean;
 begin
-  result := DataType = "String";
+  result := DataType = TypeString;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsDouble(): Boolean;
 begin
-  result := DataType = "Double";
+  result := DataType = TypeDouble;
 end;
 
 //*******************************************************************************
