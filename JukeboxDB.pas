@@ -603,41 +603,13 @@ method JukeboxDB.SongsForQueryResults(Statement: ^libsqlite3.sqlite3_stmt): List
 var
   ResultSongs: List<SongMetadata>;
   rc: Integer;
-  /*
-  fileUid: ^Byte;
-  fileTime: ^Byte;
-  oFileSize: Integer;
-  sFileSize: Integer;
-  padCount: Integer;
-  artistName: ^Byte;
-  artistUid: ^Byte;
-  songName: ^Byte;
-  md5Hash: ^Byte;
-  compressed: Integer;
-  encrypted: Integer;
-  containerName: ^Byte;
-  objectName: ^Byte;
-  albumUid: ^Byte;
-  */
   song: SongMetadata;
 begin
   ResultSongs := new List<SongMetadata>();
 
-  rc := libsqlite3.sqlite3_step(Statement);  // Fatal error in GC - Too many heap sections occurs on here
+  rc := libsqlite3.sqlite3_step(Statement);
 
   while (rc <> libsqlite3.SQLITE_DONE) and (rc <> libsqlite3.SQLITE_OK) do begin
-    //const fileUid = sqlite3.sqlite3_column_text(Statement, 0);
-    //const fileTime = sqlite3.sqlite3_column_text(Statement, 1);
-    //const artistName = sqlite3.sqlite3_column_text(Statement, 5);
-    //const artistUid = sqlite3.sqlite3_column_text(Statement, 6);
-    //const songName = sqlite3.sqlite3_column_text(Statement, 7);
-    //const md5Hash = sqlite3.sqlite3_column_text(Statement, 8);
-    const compressed = libsqlite3.sqlite3_column_int(Statement, 9);
-    const encrypted = libsqlite3.sqlite3_column_int(Statement, 10);
-    //const containerName = sqlite3.sqlite3_column_text(Statement, 11);
-    //const objectName = sqlite3.sqlite3_column_text(Statement, 12);
-    //const albumUid = sqlite3.sqlite3_column_text(Statement, 13);
-
     song := new SongMetadata();
     song.Fm.FileUid := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 0));
     song.Fm.FileTime := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 1));
@@ -648,15 +620,14 @@ begin
     song.ArtistUid := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 6));
     song.SongName := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 7));
     song.Fm.Md5Hash := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 8));
-    song.Fm.Compressed := (compressed = 1);
-    song.Fm.Encrypted := (encrypted = 1);
+    song.Fm.Compressed := (libsqlite3.sqlite3_column_int(Statement, 9) = 1);
+    song.Fm.Encrypted := (libsqlite3.sqlite3_column_int(Statement, 10) = 1);
     song.Fm.ContainerName := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 11));
     song.Fm.ObjectName := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 12));
     song.AlbumUid := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 13));
-
     ResultSongs.Add(song);
-    rc := libsqlite3.sqlite3_step(Statement);  // Fatal error in GC - Too many heap sections occurs on here
 
+    rc := libsqlite3.sqlite3_step(Statement);
   end;
 
   result := ResultSongs;
