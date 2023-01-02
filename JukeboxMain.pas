@@ -17,6 +17,8 @@ type
     constructor;
     method ConnectFsSystem(Credentials: PropertySet;
                            Prefix: String): StorageSystem;
+    method ConnectS3System(Credentials: PropertySet;
+                           Prefix: String): StorageSystem;
     method ConnectStorageSystem(SystemName: String;
                                 Credentials: PropertySet;
                                 Prefix: String): StorageSystem;
@@ -59,12 +61,92 @@ end;
 
 //*******************************************************************************
 
+method JukeboxMain.ConnectS3System(Credentials: PropertySet;
+                                   Prefix: String): StorageSystem;
+begin
+  var AwsAccessKey := "";
+  var AwsSecretKey := "";
+  var UpdateAwsAccessKey := "";
+  var UpdateAwsSecretKey := "";
+  var Protocol := "";
+  var Host := "";
+
+  if Credentials.Contains("aws_access_key") then begin
+    AwsAccessKey := Credentials.GetStringValue("aws_access_key");
+  end;
+
+  if Credentials.Contains("aws_secret_key") then begin
+    AwsSecretKey := Credentials.GetStringValue("aws_secret_key");
+  end;
+
+  if Credentials.Contains("protocol") then begin
+    Protocol := Credentials.GetStringValue("protocol");
+  end;
+
+  if Credentials.Contains("host") then begin
+    Host := Credentials.GetStringValue("host");
+  end;
+
+  if Credentials.Contains("update_aws_access_key") and
+     Credentials.Contains("update_aws_secret_key") then begin
+
+    UpdateAwsAccessKey := Credentials.GetStringValue("update_aws_access_key");
+    UpdateAwsSecretKey := Credentials.GetStringValue("update_aws_secret_key");
+  end;
+
+  if DebugMode then begin
+    writeLn("aws_access_key={0}", AwsAccessKey);
+    writeLn("aws_secret_key={0}", AwsSecretKey);
+    if (UpdateAwsAccessKey.Length() > 0) and (UpdateAwsSecretKey.Length() > 0) then begin
+      writeLn("update_aws_access_key={0}", UpdateAwsAccessKey);
+      writeLn("update_aws_secret_key={0}", UpdateAwsSecretKey);
+    end;
+    writeLn("host={0}", Host);
+  end;
+
+  if (AwsAccessKey.Length() = 0) or (AwsSecretKey.Length() = 0) then begin
+    writeLn("error: no s3 credentials given. please specify aws_access_key " +
+            "and aws_secret_key in credentials file");
+    exit nil;
+  end
+  else begin
+    if Host.Length() = 0 then begin
+      writeLn("error: no s3 host given. please specify host in credentials file");
+      exit nil;
+    end;
+
+    var AccessKey := "";
+    var SecretKey := "";
+
+    if UpdateMode then begin
+      AccessKey := UpdateAwsAccessKey;
+      SecretKey := UpdateAwsSecretKey;
+    end
+    else begin
+      AccessKey := AwsAccessKey;
+      SecretKey := AwsSecretKey;
+    end;
+
+    result := new S3ExtStorageSystem(AccessKey,
+                                     SecretKey,
+                                     Protocol,
+                                     Host,
+                                     Prefix,
+                                     DebugMode);
+  end;
+end;
+
+//*******************************************************************************
+
 method JukeboxMain.ConnectStorageSystem(SystemName: String;
                                         Credentials: PropertySet;
                                         Prefix: String): StorageSystem;
 begin
   if SystemName = "fs" then begin
     result := ConnectFsSystem(Credentials, Prefix);
+  end
+  else if (SystemName = "s3") or (SystemName= "s3ext") then begin
+    result := ConnectS3System(Credentials, Prefix);
   end
   else begin
     writeLn(String.Format("error: unrecognized storage system {0}", SystemName));

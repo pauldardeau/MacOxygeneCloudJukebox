@@ -48,7 +48,7 @@ type
     method populate_object(kvp: KeyValuePairs; ObjectName: String);
     method run_program(program_path: String; list_output_lines: List<String>): Boolean;
     method run_program(program_path: String): Boolean;
-    method run_program(program_path: String; std_out_text: StringBuilder): Boolean;
+    method run_program(program_path: String; out StdOut: String): Boolean;
     method prepare_run_script(script_template: String; kvp: KeyValuePairs): Boolean;
     method run_script_name_for_template(script_template: String): String;
 
@@ -236,6 +236,8 @@ end;
 method S3ExtStorageSystem.GetObjectMetadata(ContainerName: String;
                                             ObjectName: String;
                                             DictProps: PropertySet): Boolean;
+var
+  StdOut: String;
 begin
   if DebugMode then begin
     writeLn("get_object_metadata: container={0}, object={1}",
@@ -253,9 +255,8 @@ begin
   const run_script = run_script_name_for_template(script_template);
 
   if prepare_run_script(script_template, kvp) then begin
-     var std_out := new StringBuilder;
-     if run_program(run_script, std_out) then begin
-       writeLn("%s", std_out);
+     if run_program(run_script, out StdOut) then begin
+       writeLn("{0}", StdOut);
        success := true;
      end;
   end;
@@ -524,6 +525,9 @@ end;
 
 method S3ExtStorageSystem.run_program(program_path: String;
                                       list_output_lines: List<String>): Boolean;
+var
+  StdOut: String;
+  StdErr: String;
 begin
    var success := false;
 
@@ -553,9 +557,7 @@ begin
    end;
 
    var program_args := new List<String>;
-   var exit_code := 0;
-   var std_out := new StringBuilder;
-   var std_err := new StringBuilder;
+   var ExitCode := 0;
 
    if is_shell_script then begin
       program_args.Add(program_path);
@@ -563,18 +565,17 @@ begin
 
    if Utils.ExecuteProgram(executable_path,
                            program_args,
-                           var exit_code,
-                           std_out,
-                           std_err) then begin
+                           var ExitCode,
+                           out StdOut,
+                           out StdErr) then begin
       //writeLn("exit_code = {0}", exit_code);
       //writeLn("*********** START STDOUT **************");
-      //writeLn("{0}", std_out.ToString());
+      //writeLn("{0}", StdOut);
       //writeLn("*********** END STDOUT **************");
 
-      if exit_code = 0 then begin
-         if std_out.length() > 0 then begin
-            const StdOutString: String = std_out.ToString();
-            const OutputLines = StdOutString.Split("\n", true);
+      if ExitCode = 0 then begin
+         if StdOut.Length() > 0 then begin
+            const OutputLines = StdOut.Split("\n", true);
             for each line in OutputLines do begin
                if line.Length() > 0 then begin
                   list_output_lines.Add(line);
@@ -591,7 +592,9 @@ end;
 //*****************************************************************************
 
 method S3ExtStorageSystem.run_program(program_path: String;
-                                      std_out_text: StringBuilder): Boolean;
+                                      out StdOut: String): Boolean;
+var
+  StdErr: String;
 begin
    var success := false;
 
@@ -621,9 +624,7 @@ begin
    end;
 
    var program_args := new List<String>;
-   var exit_code := 0;
-   var std_out := new StringBuilder;
-   var std_err := new StringBuilder;
+   var ExitCode := 0;
 
    if is_shell_script then begin
       program_args.Add(program_path);
@@ -631,13 +632,10 @@ begin
 
    if Utils.ExecuteProgram(executable_path,
                            program_args,
-                           var exit_code,
-                           std_out,
-                           std_err) then begin
-      if exit_code = 0 then begin
-         if std_out.length() > 0 then begin
-            std_out_text := std_out;
-         end;
+                           var ExitCode,
+                           out StdOut,
+                           out StdErr) then begin
+      if ExitCode = 0 then begin
          success := true;
       end;
    end;
@@ -648,6 +646,9 @@ end;
 //*****************************************************************************
 
 method S3ExtStorageSystem.run_program(program_path: String): Boolean;
+var
+  StdOut: String;
+  StdErr: String;
 begin
    var success := false;
 
@@ -677,9 +678,7 @@ begin
    end;
 
    var program_args := new List<String>;
-   var exit_code := 0;
-   var std_out := new StringBuilder;
-   var std_err := new StringBuilder;
+   var ExitCode := 0;
 
    if is_shell_script then begin
       program_args.Add(program_path);
@@ -687,10 +686,10 @@ begin
 
    if Utils.ExecuteProgram(executable_path,
                            program_args,
-                           var exit_code,
-                           std_out,
-                           std_err) then begin
-      if exit_code = 0 then begin
+                           var ExitCode,
+                           out StdOut,
+                           out StdErr) then begin
+      if ExitCode = 0 then begin
          success := true;
       end;
    end;

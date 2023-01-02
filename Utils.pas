@@ -192,8 +192,13 @@ type
 
     method FileCopy(Source: String; Target: String): Boolean;
     begin
-      //TODO: implement FileCopy
-      result := false;
+      try
+        var SourceFile := RemObjects.Elements.RTL.File(Source);
+        SourceFile.CopyTo(Target);
+        result := true;
+      except
+        result := false;
+      end;
     end;
 
 //*******************************************************************************
@@ -327,11 +332,15 @@ type
     method ExecuteProgram(ProgramPath: String;
                           ProgramArgs: ImmutableList<String>;
                           var ExitCode: Integer;
-                          StdOut: StringBuilder;
-                          StdErr: StringBuilder): Boolean;
+                          out StdOut: String;
+                          out StdErr: String): Boolean;
     begin
-      //TODO: implement ExecuteProgram
-      result := false;
+      try
+        ExitCode := Process.Run(ProgramPath, ProgramArgs, nil, nil, out StdOut, out StdErr);
+        result := true;
+      except
+        result := false;
+      end;
     end;
 
 //*******************************************************************************
