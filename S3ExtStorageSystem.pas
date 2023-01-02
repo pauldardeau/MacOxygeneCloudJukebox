@@ -111,11 +111,11 @@ begin
   if PrepareRunScript(ScriptTemplate, Kvp) then begin
     if not RunProgram(RunScript, ListOfContainers) then begin
       ListOfContainers.RemoveAll();
-      writeLn("S3ExtStorageSystem.list_account_containers - error: unable to run script");
+      writeLn("S3ExtStorageSystem.ListAccountContainers - error: unable to run script");
     end;
   end
   else begin
-    writeLn("S3ExtStorageSystem.list_account_containers - error: unable to prepare script");
+    writeLn("S3ExtStorageSystem.ListAccountContainers - error: unable to prepare script");
   end;
 
   Utils.DeleteFile(RunScript);
@@ -127,14 +127,14 @@ end;
 
 method S3ExtStorageSystem.GetContainerNames: ImmutableList<String>;
 begin
-  //TODO: implement GetContainerNames
+  result := ListContainers;
 end;
 
 //*******************************************************************************
 
 method S3ExtStorageSystem.HasContainer(ContainerName: String): Boolean;
 begin
-  //TODO: implement HasContainer
+  result := ListContainers.Contains(ContainerName);
 end;
 
 //*******************************************************************************
@@ -142,7 +142,7 @@ end;
 method S3ExtStorageSystem.CreateContainer(ContainerName: String): Boolean;
 begin
   if DebugMode then begin
-    writeLn("create_container: {0}", ContainerName);
+    writeLn("CreateContainer: {0}", ContainerName);
   end;
 
   var ContainerCreated := false;
@@ -176,7 +176,7 @@ end;
 method S3ExtStorageSystem.DeleteContainer(ContainerName: String): Boolean;
 begin
   if DebugMode then begin
-    writeLn("delete_container: {0}", ContainerName);
+    writeLn("DeleteContainer: {0}", ContainerName);
   end;
 
   var ContainerDeleted := false;
@@ -204,7 +204,7 @@ end;
 method S3ExtStorageSystem.ListContainerContents(ContainerName: String): ImmutableList<String>;
 begin
   if DebugMode then begin
-    writeLn("list_container_contents: {0}", ContainerName);
+    writeLn("ListContainerContents: {0}", ContainerName);
   end;
 
   var ListObjects := new List<String>;
@@ -219,11 +219,11 @@ begin
   if PrepareRunScript(ScriptTemplate, Kvp) then begin
     if not RunProgram(RunScript, ListObjects) then begin
       ListObjects.RemoveAll();
-      writeLn("S3ExtStorageSystem.list_container_contents - error: unable to run program");
+      writeLn("S3ExtStorageSystem.ListContainerContents - error: unable to run program");
     end;
   end
   else begin
-    writeLn("S3ExtStorageSystem.list_container_contents - error: unable to prepare run script");
+    writeLn("S3ExtStorageSystem.ListContainerContents - error: unable to prepare run script");
   end;
 
   Utils.DeleteFile(RunScript);
@@ -240,7 +240,7 @@ var
   StdOut: String;
 begin
   if DebugMode then begin
-    writeLn("get_object_metadata: container={0}, object={1}",
+    writeLn("GetObjectMetadata: Container={0}, Object={1}",
             ContainerName, ObjectName);
   end;
 
@@ -274,10 +274,10 @@ method S3ExtStorageSystem.PutObject(ContainerName: String;
                                     Headers: PropertySet): Boolean;
 begin
   if DebugMode then begin
-    writeLn("put_object: container=%s, object=%s, length=%ld\n",
-             ContainerName,
-             ObjectName,
-             FileContents.length);
+    writeLn("PutObject: Container={0}, Object={1}, Length={3}",
+            ContainerName,
+            ObjectName,
+            FileContents.length);
   end;
 
   var ObjectAdded := false;
@@ -293,7 +293,7 @@ begin
     Utils.DeleteFile(TmpFile);
   end
   else begin
-    writeLn("error: put_object not able to write to tmp file");
+    writeLn("error: PutObject not able to write to tmp file");
   end;
 
   result := ObjectAdded;
@@ -307,7 +307,7 @@ method S3ExtStorageSystem.PutObjectFromFile(ContainerName: String;
                                             Headers: PropertySet): Boolean;
 begin
   if DebugMode then begin
-    writeLn("put_object_from_file: container={0}, object={1}, file_path={2}",
+    writeLn("PutObjectFromFile: Container={0}, Object={1}, FilePath={2}",
             ContainerName,
             ObjectName,
             FilePath);
@@ -429,7 +429,7 @@ method S3ExtStorageSystem.DeleteObject(ContainerName: String;
                                        ObjectName: String): Boolean;
 begin
   if DebugMode then begin
-    writeLn("delete_object: container={0}, object={1}",
+    writeLn("DeleteObject: Container={0}, Object={1}",
              ContainerName, ObjectName);
   end;
 
@@ -461,7 +461,7 @@ method S3ExtStorageSystem.GetObject(ContainerName: String;
                                     LocalFilePath: String): Int64;
 begin
   if DebugMode then begin
-    writeLn("get_object: container={0}, object={1}, local_file_path={3}",
+    writeLn("GetObject: Container={0}, Object={1}, LocalFilePath={3}",
              ContainerName, ObjectName,
              LocalFilePath);
   end;
@@ -532,7 +532,7 @@ begin
   var Success := false;
 
   if not Utils.FileExists(ProgramPath) then begin
-    writeLn("run_program: error '{0}' does not exist", ProgramPath);
+    writeLn("RunProgram: error '{0}' does not exist", ProgramPath);
     exit false;
   end;
 
@@ -542,7 +542,7 @@ begin
   if ProgramPath.EndsWith(".sh") then begin
     const FileLines = Utils.FileReadTextLines(ProgramPath);
     if FileLines.Count = 0 then begin
-      writeLn("run_program: unable to read file '{0}'", ProgramPath);
+      writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
       exit false;
     end;
     const FirstLine = FileLines[0];
@@ -599,7 +599,7 @@ begin
    var success := false;
 
    if not Utils.FileExists(ProgramPath) then begin
-      writeLn("run_program: error '{0}' does not exist", ProgramPath);
+      writeLn("RunProgram: error '{0}' does not exist", ProgramPath);
       exit false;
    end;
 
@@ -609,7 +609,7 @@ begin
    if ProgramPath.EndsWith(".sh") then begin
       const FileLines = Utils.FileReadTextLines(ProgramPath);
       if FileLines.Count = 0 then begin
-         writeLn("run_program: unable to read file '{0}'", ProgramPath);
+         writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
          exit false;
       end;
       const FirstLine = FileLines[0];
@@ -653,7 +653,7 @@ begin
   var Success := false;
 
   if not Utils.FileExists(ProgramPath) then begin
-    writeLn("run_program: error '{0}' does not exist", ProgramPath);
+    writeLn("RunProgram: error '{0}' does not exist", ProgramPath);
     exit false;
   end;
 
@@ -663,7 +663,7 @@ begin
   if ProgramPath.EndsWith(".sh") then begin
     const FileLines = Utils.FileReadTextLines(ProgramPath);
     if FileLines.Count = 0 then begin
-      writeLn("run_program: unable to read file '{0}'", ProgramPath);
+      writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
       exit false;
     end;
     const FirstLine = FileLines[0];
