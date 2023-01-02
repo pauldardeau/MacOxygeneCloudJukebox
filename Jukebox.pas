@@ -40,6 +40,8 @@ type
     ExitRequested: Boolean;
     IsPaused: Boolean;
     SongSecondsOffset: Integer;
+    Downloader: SongDownloader;
+    DownloadThread: Thread;
 
   public
     class method InitializeStorageSystem(StorageSys: StorageSystem;
@@ -47,6 +49,7 @@ type
     constructor(JbOptions: JukeboxOptions;
                 StorageSys: StorageSystem;
                 aDebugPrint: Boolean);
+    method IsExitRequested: Boolean;
     method Enter: Boolean;
     method Leave;
     method TogglePausePlay;
@@ -73,6 +76,7 @@ type
     method PlaySong(Song: SongMetadata);
     method DownloadSongs;
     method DownloadSongs(DlSongs: List<SongMetadata>);
+    method RunSongDownloaderThread();
     method PlaySongs(Shuffle: Boolean; Artist: String; Album: String);
     method PlaySongList(aSongList: List<SongMetadata>; Shuffle: Boolean);
     method ShowListContainers;
@@ -174,6 +178,8 @@ begin
   ExitRequested := false;
   IsPaused := false;
   SongSecondsOffset := 0;
+  Downloader := nil;
+  DownloadThread := nil;
 
   if JukeboxOptions.DebugMode then begin
     DebugPrint := true;
@@ -183,6 +189,13 @@ begin
     writeLn(String.Format("songImportDirPath = '{0}'", SongImportDirPath));
     writeLn(String.Format("songPlayDirPath = '{0}'", SongPlayDirPath));
   end;
+end;
+
+//*******************************************************************************
+
+method Jukebox.IsExitRequested: Boolean;
+begin
+  result := ExitRequested;
 end;
 
 //*******************************************************************************
@@ -346,8 +359,7 @@ begin
     exit;
   end;
 
-  const BaseFileName =
-    RemObjects.Elements.RTL.Path.GetFileNameWithoutExtension(FileName);
+  const BaseFileName = Utils.GetBaseFileName(FileName);
 
   const Components = BaseFileName.Split("--", true);
   if Components.Count = 3 then begin
@@ -879,10 +891,8 @@ end;
 method Jukebox.PlaySong(Song: SongMetadata);
 var
   ExitCode: Integer;
-  StartedAudioPlayer: Boolean;
 begin
   ExitCode := -1;
-  StartedAudioPlayer := false;
 
   const SongFilePath = SongPathInPlaylist(Song);
 
@@ -908,14 +918,14 @@ begin
 
       // if the audio player failed or is not present, just sleep
       // for the length of time that audio would be played
-      //if (not StartedAudioPlayer) and (ExitCode <> 0) then begin
-        //TimeSleepSeconds(SongPlayLengthSeconds);
-      //end;
+      if ExitCode <> 0 then begin
+        Utils.SleepSeconds(SongPlayLengthSeconds);
+      end;
     end
     else begin
       // we don't know about an audio player, so simulate a
       // song being played by sleeping
-      RemObjects.Elements.RTL.Thread.Sleep(1000 * SongPlayLengthSeconds);
+      Utils.SleepSeconds(SongPlayLengthSeconds);
     end;
 
     if not IsPaused then begin
@@ -925,7 +935,8 @@ begin
   end
   else begin
     writeLn(String.Format("song file doesn't exist: '{0}'", SongFilePath));
-    RemObjects.Elements.RTL.File.AppendText("404.txt", SongFilePath + "\n");
+    const FileNotFoundPath = Utils.PathJoin(JukeboxOptions.Directory, "404.txt");
+    Utils.FileAppendAllText(FileNotFoundPath, SongFilePath + "\n");
   end;
 end;
 
@@ -944,8 +955,7 @@ begin
 
   var SongFileCount := 0;
   for each FileName in DirListing do begin
-    var FileExtension :=
-      RemObjects.Elements.RTL.File(FileName).Extension;
+    const FileExtension = Utils.GetFileExtension(FileName);
 
     if (FileExtension.Length > 0) and
        (FileExtension <> downloadExtension) then begin
@@ -987,15 +997,12 @@ end;
 method Jukebox.DownloadSongs(DlSongs: List<SongMetadata>);
 begin
   if DlSongs.Count > 0 then begin
-    //TODO:
-    /*
     if (Downloader = nil) and (DownloadThread = nil) then begin
       if DebugPrint then begin
         writeLn("creating SongDownloader and download thread");
       end;
-      Downloader := new SongDownloader(this, DlSongs);
-      DownloadThread := new Thread(Downloader);
-      Downloader.SetCompletionObserver(this);
+      Downloader := new SongDownloader(self, DlSongs);
+      DownloadThread := new Thread(@RunSongDownloaderThread);
       DownloadThread.Start();
     end
     else begin
@@ -1003,8 +1010,16 @@ begin
         writeLn("Not downloading more songs b/c downloader != NULL or download_thread != NULL");
       end;
     end;
-    */
   end;
+end;
+
+//*******************************************************************************
+
+method Jukebox.RunSongDownloaderThread();
+begin
+  Downloader.Run();
+  Downloader := nil;
+  DownloadThread := nil;
 end;
 
 //*******************************************************************************
@@ -1012,8 +1027,8 @@ end;
 method Jukebox.PlaySongs(Shuffle: Boolean; Artist: String; Album: String);
 begin
   if JukeboxDb <> nil then begin
-    const theSongList = JukeboxDb.RetrieveSongs(Artist, Album);
-    PlaySongList(theSongList, Shuffle);
+    SongList := JukeboxDb.RetrieveSongs(Artist, Album);
+    PlaySongList(SongList, Shuffle);
   end;
 end;
 
@@ -1040,36 +1055,27 @@ begin
     if DebugPrint then begin
       writeLn("deleting existing files in song-play directory");
     end;
-    //Utils.DeleteFilesInDirectory(SongPlayDirPath);
+    Utils.DeleteFilesInDirectory(SongPlayDirPath);
   end;
 
   SongIndex := 0;
   //InstallSignalHandlers();
 
-  var osId := RemObjects.Elements.RTL.Environment.OSName;
-  if osId.StartsWith("macOS") then begin
+  {$IFDEF MACOS}
     AudioPlayerExeFileName := "/usr/bin/afplay";
     AudioPlayerCommandArgs := "";
-  end
-  else if osId.StartsWith("linux") or
-          osId.StartsWith("freebsd") or
-          osId.StartsWith("netbsd") or
-          osId.StartsWith("openbsd") then begin
-
+  {$ELSEIF LINUX}
     AudioPlayerExeFileName := "/usr/bin/mplayer";
     AudioPlayerCommandArgs := "-novideo -nolirc -really-quiet";
-  end
-  else if osId.StartsWith("windows") then begin
+  {$ELSEIF WINDOWS}
     // we really need command-line support for /play and /close arguments. unfortunately,
     // this support used to be available in the built-in Windows Media Player, but is
     // no longer present.
     AudioPlayerExeFileName := "C:\\Program Files\\MPC-HC\\mpc-hc64.exe";
     AudioPlayerCommandArgs := "/play /close /minimized";
-  end
-  else begin
-    writeLn(String.Format("error: '{0}' is not a supported OS\n", osId));
-    exit;
-  end;
+  {$ELSE}
+    {$ERROR Unsupported platform}
+  {$ENDIF}
 
   writeLn("downloading first song...");
 
@@ -1082,7 +1088,8 @@ begin
     writeLn("first song downloaded. starting playing now.");
 
     const pidAsText = String.Format("{0}\n", Utils.GetPid());
-    Utils.FileWriteAllText("pid.txt", pidAsText);
+    const pidFilePath = Utils.PathJoin(JukeboxOptions.Directory, "jukebox.pid");
+    Utils.FileWriteAllText(pidFilePath, pidAsText);
 
     while true do begin
       if not ExitRequested then begin
@@ -1096,7 +1103,7 @@ begin
             SongIndex := 0;
           end;
         end else begin
-          RemObjects.Elements.RTL.Thread.Sleep(1000);
+          Utils.SleepSeconds(1);
         end;
       end
       else begin
@@ -1104,7 +1111,7 @@ begin
       end;
     end;
 
-    Utils.DeleteFile("pid.txt");
+    Utils.DeleteFile(pidFilePath);
   end
   else begin
     writeLn("error: unable to download songs");

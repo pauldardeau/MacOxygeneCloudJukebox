@@ -28,7 +28,7 @@ begin
   UseEncryption := false;
   UseCompression := false;
   CheckDataIntegrity := false;
-  FileCacheCount := 0;
+  FileCacheCount := 3;
   NumberSongs := 0;
   EncryptionKey := "";
   EncryptionKeyFile := "";

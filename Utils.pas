@@ -19,8 +19,12 @@ type
       if DirectoryExists(DirPath) then
         result := false
       else
-        RemObjects.Elements.RTL.Folder(DirPath).Create();
-        result := true;
+        try
+          RemObjects.Elements.RTL.Folder(DirPath).Create();
+          result := true;
+        except
+          result := false;
+        end;
     end;
 
 //*******************************************************************************
@@ -28,8 +32,12 @@ type
     method DeleteDirectory(DirPath: String): Boolean;
     begin
       if DirectoryExists(DirPath) then begin
-        RemObjects.Elements.RTL.Folder(DirPath).Delete();
-        result := true;
+        try
+          RemObjects.Elements.RTL.Folder(DirPath).Delete();
+          result := true;
+        except
+          result := false;
+        end;
       end
       else begin
         result := false;
@@ -74,13 +82,11 @@ type
 //*******************************************************************************
 
     method DeleteFilesInDirectory(DirPath: String);
-    //var
-    //  aFile: RemObjects.Elements.RTL.File;
     begin
-      var aFolder := RemObjects.Elements.RTL.Folder(DirPath);
-      for each FileName in aFolder.GetFiles() do begin
-        var aFile := RemObjects.Elements.RTL.File(PathJoin(DirPath, FileName));
-        aFile.Delete();
+      const listFiles = ListFilesInDirectory(DirPath);
+      for each FileName in listFiles do begin
+        const FilePath = PathJoin(DirPath, FileName);
+        DeleteFile(FilePath);
       end;
     end;
 
@@ -153,8 +159,12 @@ type
     method DeleteFile(FilePath: String): Boolean;
     begin
       if FileExists(FilePath) then begin
-        RemObjects.Elements.RTL.File(FilePath).Delete();
-        result := true;
+        try
+          RemObjects.Elements.RTL.File(FilePath).Delete();
+          result := true;
+        except
+          result := false;
+        end;
       end
       else begin
         result := false;
@@ -178,8 +188,12 @@ type
 
     method FileWriteAllBytes(FilePath: String; Contents: array of Byte): Boolean;
     begin
-      RemObjects.Elements.RTL.File.WriteBytes(FilePath, Contents);
-      result := true;
+      try
+        RemObjects.Elements.RTL.File.WriteBytes(FilePath, Contents);
+        result := true;
+      except
+        result := false;
+      end;
     end;
 
 //*******************************************************************************
@@ -193,9 +207,30 @@ type
 
     method FileWriteAllText(FilePath: String; Contents: String): Boolean;
     begin
-      RemObjects.Elements.RTL.File.WriteText(FilePath, Contents,
-                                             RemObjects.Elements.RTL.Encoding.UTF8);
-      result := true;
+      try
+        RemObjects.Elements.RTL.File.WriteText(FilePath, Contents,
+                                               RemObjects.Elements.RTL.Encoding.UTF8);
+        result := true;
+      except
+        result := false;
+      end;
+    end;
+
+//*******************************************************************************
+
+    method FileAppendAllText(FilePath: String; Contents: String): Boolean;
+    begin
+      if FileExists(FilePath) then begin
+        try
+          RemObjects.Elements.RTL.File.AppendText(FilePath, Contents);
+          result := true;
+        except
+          result := false;
+        end;
+      end
+      else begin
+        result := FileWriteAllText(FilePath, Contents);
+      end;
     end;
 
 //*******************************************************************************
@@ -217,7 +252,7 @@ type
 
     method Md5ForFile(FilePath: String): String;
     begin
-      //TODO: implement md5ForFile
+      //TODO: implement Md5ForFile
       result := '';
     end;
 
@@ -225,6 +260,7 @@ type
 
     method GetPid(): Integer;
     begin
+      //TODO: implement GetPid
       result := 0; //RemObjects.Elements.System.Process.CurrentProcessId();
     end;
 
@@ -240,6 +276,27 @@ type
     method GetCurrentDirectory: String;
     begin
       result := RemObjects.Elements.RTL.Environment.CurrentDirectory;
+    end;
+
+//*******************************************************************************
+
+    method SleepSeconds(seconds: Integer);
+    begin
+      RemObjects.Elements.RTL.Thread.Sleep(1000 * seconds);
+    end;
+
+//*******************************************************************************
+
+    method GetBaseFileName(FileName: String): String;
+    begin
+      result := RemObjects.Elements.RTL.Path.GetFileNameWithoutExtension(FileName);
+    end;
+
+//*******************************************************************************
+
+    method GetFileExtension(FileName: String): String;
+    begin
+      result := RemObjects.Elements.RTL.File(FileName).Extension;
     end;
 
 //*******************************************************************************

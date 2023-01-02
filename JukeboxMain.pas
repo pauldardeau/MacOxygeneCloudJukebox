@@ -429,8 +429,6 @@ begin
     const ContainerPrefix = "com.swampbits.jukebox.";
     const CredsFile = StorageType + "_creds.txt";
     Creds := new PropertySet;
-    //const cwd = Utils.GetCurrentDirectory();
-    //const CredsFilePath = Utils.PathJoin(cwd, CredsFile);
     const CredsFilePath = Utils.PathJoin(Directory, CredsFile);
 
     if Utils.FileExists(CredsFilePath) then begin
