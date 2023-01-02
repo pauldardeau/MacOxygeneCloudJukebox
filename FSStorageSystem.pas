@@ -14,7 +14,7 @@ type
     constructor(aRootDir: String; aDebugMode: Boolean);
     method Enter: Boolean; override;
     method Leave; override;
-    method ListAccountContainers: ImmutableList<String>; override;
+    method ListAccountContainers: List<String>; override;
     method GetContainerNames: ImmutableList<String>; override;
     method HasContainer(ContainerName: String): Boolean; override;
     method CreateContainer(ContainerName: String): Boolean; override;
@@ -66,7 +66,7 @@ end;
 
 //*******************************************************************************
 
-method FSStorageSystem.ListAccountContainers: ImmutableList<String>;
+method FSStorageSystem.ListAccountContainers: List<String>;
 begin
   result := Utils.ListDirsInDirectory(RootDir);
 end;

@@ -46,7 +46,7 @@ type
 
 //*******************************************************************************
 
-    method ListFilesInDirectory(DirPath: String): ImmutableList<String>;
+    method ListFilesInDirectory(DirPath: String): List<String>;
     begin
       var theFolder := RemObjects.Elements.RTL.Folder(DirPath);
       const lenDirPath = DirPath.Length;
@@ -64,7 +64,7 @@ type
 
 //*******************************************************************************
 
-    method ListDirsInDirectory(DirPath: String): ImmutableList<String>;
+    method ListDirsInDirectory(DirPath: String): List<String>;
     begin
       const lenDirPath = DirPath.Length;
       var listSubdirs := new List<String>;
@@ -176,12 +176,35 @@ type
     method RenameFile(OldPath: String; NewPath: String): Boolean;
     begin
       if FileExists(OldPath) then begin
-        var NewFile := RemObjects.Elements.RTL.File(OldPath).Rename(NewPath);
-        result := NewFile.Exists();
+        try
+          var NewFile := RemObjects.Elements.RTL.File(OldPath).Rename(NewPath);
+          result := NewFile.Exists();
+        except
+          result := false;
+        end;
       end
       else begin
         result := false;
       end;
+    end;
+
+//*******************************************************************************
+
+    method FileCopy(Source: String; Target: String): Boolean;
+    begin
+      //TODO: implement FileCopy
+      result := false;
+    end;
+
+//*******************************************************************************
+
+    method FileSetPermissions(FilePath: String;
+                              UserPerms: Integer;
+                              GroupPerms: Integer;
+                              WorldPerms: Integer): Boolean;
+    begin
+      //TODO: implement FileSetPermissions
+      result := false;
     end;
 
 //*******************************************************************************
@@ -297,6 +320,18 @@ type
     method GetFileExtension(FileName: String): String;
     begin
       result := RemObjects.Elements.RTL.File(FileName).Extension;
+    end;
+
+//*******************************************************************************
+
+    method ExecuteProgram(ProgramPath: String;
+                          ProgramArgs: ImmutableList<String>;
+                          var ExitCode: Integer;
+                          StdOut: StringBuilder;
+                          StdErr: StringBuilder): Boolean;
+    begin
+      //TODO: implement ExecuteProgram
+      result := false;
     end;
 
 //*******************************************************************************

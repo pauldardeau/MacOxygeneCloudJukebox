@@ -8,7 +8,7 @@ type
   public
     method Enter: Boolean; abstract;
     method Leave; abstract;
-    method ListAccountContainers: ImmutableList<String>; abstract;
+    method ListAccountContainers: List<String>; abstract;
     method GetContainerNames: ImmutableList<String>; abstract;
     method HasContainer(ContainerName: String): Boolean; abstract;
     method CreateContainer(ContainerName: String): Boolean; abstract;
