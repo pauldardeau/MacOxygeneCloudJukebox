@@ -467,6 +467,7 @@ begin
     const Storage = Args.GetStringValue("storage");
     SupportedSystems := new StringSet;
     SupportedSystems.Add("fs");
+    SupportedSystems.Add("s3");
     if not SupportedSystems.Contains(Storage) then begin
       writeLn(String.Format("error: invalid storage type {0}", Storage));
       //printf("supported systems are: %s\n", supported_systems.to_string());
