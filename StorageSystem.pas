@@ -15,16 +15,16 @@ type
     method DeleteContainer(ContainerName: String): Boolean; abstract;
     method ListContainerContents(ContainerName: String): ImmutableList<String>; abstract;
     method GetObjectMetadata(ContainerName: String;
-    ObjectName: String;
-    DictProps: PropertySet): Boolean; abstract;
+                             ObjectName: String;
+                             DictProps: PropertySet): Boolean; abstract;
     method PutObject(ContainerName: String;
-    ObjectName: String;
-    FileContents: array of Byte;
-    Headers: PropertySet): Boolean; abstract;
+                     ObjectName: String;
+                     FileContents: array of Byte;
+                     Headers: PropertySet): Boolean; abstract;
     method DeleteObject(ContainerName: String; ObjectName: String): Boolean; abstract;
     method GetObject(ContainerName: String;
-    ObjectName: String;
-    LocalFilePath: String): Int64; abstract;
+                     ObjectName: String;
+                     LocalFilePath: String): Int64; abstract;
   end;
 
 implementation
