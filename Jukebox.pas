@@ -117,7 +117,7 @@ begin
     const ch = ArtistSongChars[i];
     const ContainerName = String.Format("{0}{1}", ch, songContainerSuffix);
     if not StorageSys.CreateContainer(ContainerName) then begin
-      writeLn(String.Format("error: unable to create container '{0}'", ContainerName));
+      writeLn("error: unable to create container '{0}'", ContainerName);
       result := false;
       exit;
     end;
@@ -132,7 +132,7 @@ begin
 
   for each ContainerName in ContainerNames do begin
     if not StorageSys.CreateContainer(ContainerName) then begin
-      writeLn(String.Format("error: unable to create container '{0}'", ContainerName));
+      writeLn("error: unable to create container '{0}'", ContainerName);
       result := false;
       exit;
     end;
@@ -185,9 +185,9 @@ begin
     DebugPrint := true;
   end;
   if DebugPrint then begin
-    writeLn(String.Format("currentDir = '{0}'", CurrentDir));
-    writeLn(String.Format("songImportDirPath = '{0}'", SongImportDirPath));
-    writeLn(String.Format("songPlayDirPath = '{0}'", SongPlayDirPath));
+    writeLn("currentDir = '{0}'", CurrentDir);
+    writeLn("songImportDirPath = '{0}'", SongImportDirPath);
+    writeLn("songPlayDirPath = '{0}'", SongPlayDirPath);
   end;
 end;
 
@@ -601,7 +601,7 @@ begin
               FileRead := true;
             end
             else begin
-              writeLn(String.Format("error: unable to read file {0}", FullPath));
+              writeLn("error: unable to read file {0}", FullPath);
             end;
 
             if FileRead then begin
@@ -645,8 +645,8 @@ begin
                     // the metadata in the local database. we need to delete the song
                     // from the storage system since we won't have any way to access it
                     // since we can't store the song metadata locally.
-                    writeLn(String.Format("unable to store metadata, deleting obj '{0}'",
-                                          fsSong.Fm.ObjectName));
+                    writeLn("unable to store metadata, deleting obj '{0}'",
+                            fsSong.Fm.ObjectName);
                     StorageSystem.DeleteObject(fsSong.Fm.ContainerName,
                                                fsSong.Fm.ObjectName);
                   end
@@ -655,9 +655,9 @@ begin
                   end
                 end
                 else begin
-                  writeLn(String.Format("error: unable to upload '{0}' to '{1}'",
-                                        fsSong.Fm.ObjectName,
-                                        fsSong.Fm.ContainerName));
+                  writeLn("error: unable to upload '{0}' to '{1}'",
+                          fsSong.Fm.ObjectName,
+                          fsSong.Fm.ContainerName);
                 end;
               end;
             end;
@@ -696,12 +696,12 @@ begin
       UploadMetadataDb();
     end;
 
-    writeLn(String.Format("{0} song files imported", FileImportCount));
+    writeLn("{0} song files imported", FileImportCount);
 
     if CumulativeUploadTime > 0 then begin
       const cumulativeUploadKb = Double(CumulativeUploadBytes) / 1000.0;
-      writeLn(String.Format("average upload throughput = {0} KB/sec",
-            cumulativeUploadKb/CumulativeUploadTime));
+      writeLn("average upload throughput = {0} KB/sec",
+              cumulativeUploadKb/CumulativeUploadTime);
     end;
   end;
 end;
@@ -774,8 +774,8 @@ begin
   if not ExitRequested then begin
     if CumulativeDownloadTime > 0 then begin
       const CumulativeDownloadKb = Real(CumulativeDownloadBytes) / 1000.0;
-      writeLn(String.Format("average download throughput = {0} KB/sec",
-              CumulativeDownloadKb/Int64(CumulativeDownloadTime)));
+      writeLn("average download throughput = {0} KB/sec",
+              CumulativeDownloadKb/Int64(CumulativeDownloadTime));
     end;
     CumulativeDownloadBytes := 0;
     CumulativeDownloadTime := 0;
@@ -818,7 +818,7 @@ begin
   end;
 
   if DebugPrint then begin
-    writeLn(String.Format("bytes retrieved: {0}", SongBytesRetrieved));
+    writeLn("bytes retrieved: {0}", SongBytesRetrieved);
   end;
 
   if SongBytesRetrieved > 0 then begin
@@ -835,7 +835,7 @@ begin
       end;
 
       if SongBytesRetrieved <> Song.Fm.StoredFileSize then begin
-        writeLn(String.Format("error: file size check failed for '{0}'", FilePath));
+        writeLn("error: file size check failed for '{0}'", FilePath);
         result := false;
         exit;
       end;
@@ -848,7 +848,7 @@ begin
     if Encrypted or Compressed then begin
       var FileContents := Utils.FileReadAllBytes(FilePath);
       if FileContents.Count = 0 then begin
-        writeLn(String.Format("error: unable to read file {0}", FilePath));
+        writeLn("error: unable to read file {0}", FilePath);
         result := false;
         exit;
       end;
@@ -863,8 +863,8 @@ begin
 
       // re-write out the uncompressed, unencrypted file contents
       if not Utils.FileWriteAllBytes(FilePath, FileContents) then begin
-        writeLn(String.Format("error: unable to write unencrypted/uncompressed file '{0}'",
-                              FilePath));
+        writeLn("error: unable to write unencrypted/uncompressed file '{0}'",
+                FilePath);
         result := false;
         exit;
       end;
@@ -897,7 +897,7 @@ begin
   const SongFilePath = SongPathInPlaylist(Song);
 
   if Utils.FileExists(SongFilePath) then begin
-    writeLn(String.Format("playing {0}", Song.Fm.FileUid));
+    writeLn("playing {0}", Song.Fm.FileUid);
     if AudioPlayerExeFileName.Length > 0 then begin
       var Args := new List<String>();
       if AudioPlayerCommandArgs.Length > 0 then begin
@@ -934,7 +934,7 @@ begin
     end;
   end
   else begin
-    writeLn(String.Format("song file doesn't exist: '{0}'", SongFilePath));
+    writeLn("song file doesn't exist: '{0}'", SongFilePath);
     const FileNotFoundPath = Utils.PathJoin(JukeboxOptions.Directory, "404.txt");
     Utils.FileAppendAllText(FileNotFoundPath, SongFilePath + "\n");
   end;
@@ -1182,7 +1182,7 @@ begin
 
   FileContents := Utils.FileReadAllBytes(FilePath);
   if FileContents.Count = 0 then begin
-    writeLn(String.Format("error: unable to read file '{0}'", FilePath));
+    writeLn("error: unable to read file '{0}'", FilePath);
     var emptyBytes: array of Byte;
     result := (false, emptyBytes, 0);
     exit;
@@ -1318,7 +1318,7 @@ begin
       end;
 
       if FileImportCount > 0 then begin
-        writeLn(String.Format("{0} playlists imported", FileImportCount));
+        writeLn("{0} playlists imported", FileImportCount);
         UploadMetadataDb;
       end
       else begin
@@ -1404,8 +1404,7 @@ begin
       else begin
         for each Song in theSongList do begin
           if not DeleteSong(Song.Fm.ObjectName, false) then begin
-            writeLn(String.Format("error deleting song '{0}'",
-                                  Song.Fm.ObjectName));
+            writeLn("error deleting song '{0}'", Song.Fm.ObjectName);
             result := false;
             exit;
           end;
@@ -1437,9 +1436,9 @@ begin
         if ListAlbumSongs.Count > 0 then begin
           var NumSongsDeleted := 0;
           for each Song in ListAlbumSongs do begin
-            writeLn(String.Format("{0} {1}",
-                                  Song.Fm.ContainerName,
-                                  Song.Fm.ObjectName));
+            writeLn("{0} {1}",
+                    Song.Fm.ContainerName,
+                    Song.Fm.ObjectName);
             // delete each song audio file
             if StorageSystem.DeleteObject(Song.Fm.ContainerName,
                                           Song.Fm.ObjectName) then begin
@@ -1448,8 +1447,8 @@ begin
               JukeboxDb.DeleteSong(Song.Fm.ObjectName);
             end
             else begin
-              writeLn(String.Format("error: unable to delete song {0}",
-                                    Song.Fm.ObjectName));
+              writeLn("error: unable to delete song {0}",
+                      Song.Fm.ObjectName);
             end;
           end;
           if NumSongsDeleted > 0 then begin
@@ -1458,9 +1457,9 @@ begin
             AlbumDeleted := true;
           end
           else begin
-            writeLn(String.Format("no songs found for artist='{0}' album name='{1}'",
-                                  Artist,
-                                  AlbumName));
+            writeLn("no songs found for artist='{0}' album name='{1}'",
+                    Artist,
+                    AlbumName);
           end;
         end;
       end;
@@ -1486,9 +1485,9 @@ begin
       if ObjectName.Length > 0 then begin
         const DbDeleted = JukeboxDb.DeletePlaylist(PlaylistName);
         if DbDeleted then begin
-          writeLn(String.Format("container='{0}', object='{1}'",
-                                Jukebox.playlistContainer,
-                                ObjectName));
+          writeLn("container='{0}', object='{1}'",
+                  Jukebox.playlistContainer,
+                  ObjectName);
           if StorageSystem.DeleteObject(Jukebox.playlistContainer,
                                         ObjectName) then begin
             IsDeleted := true;
@@ -1562,8 +1561,7 @@ begin
       end;
 
       if FileImportCount > 0 then begin
-        writeLn(String.Format("{0} album art files imported",
-                              FileImportCount));
+        writeLn("{0} album art files imported", FileImportCount);
       end
       else begin
         writeLn("no files imported");

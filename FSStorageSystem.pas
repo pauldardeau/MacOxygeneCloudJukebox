@@ -105,7 +105,7 @@ begin
   const ContainerCreated = Utils.CreateDirectory(ContainerDir);
   if ContainerCreated then begin
     if DebugMode then begin
-      writeLn(String.Format("container created: '{0}'", ContainerName));
+      writeLn("container created: '{0}'", ContainerName);
     end;
   end;
   result := ContainerCreated;
@@ -119,7 +119,7 @@ begin
   const ContainerDeleted = Utils.DeleteDirectory(ContainerDir);
   if ContainerDeleted then begin
     if DebugMode then begin
-      writeLn(String.Format("container deleted: '{0}'", ContainerName));
+      writeLn("container deleted: '{0}'", ContainerName);
     end;
   end;
   result := ContainerDeleted;
@@ -181,9 +181,7 @@ begin
       ObjectAdded := Utils.FileWriteAllBytes(ObjectPath, FileContents);
       if ObjectAdded then begin
         if DebugMode then begin
-          writeLn(String.Format("object added: {0}/{1}",
-                                ContainerName,
-                                ObjectName));
+          writeLn("object added: {0}/{1}", ContainerName, ObjectName);
         end;
         if Headers <> nil then begin
           if Headers.Count() > 0 then begin
@@ -238,9 +236,7 @@ begin
       ObjectDeleted := Utils.DeleteFile(ObjectPath);
       if ObjectDeleted then begin
         if DebugMode then begin
-          writeLn(String.Format("object deleted: {0}/{1}",
-                                ContainerName,
-                                ObjectName));
+          writeLn("object deleted: {0}/{1}", ContainerName, ObjectName);
         end;
         const MetaPath = ObjectPath + MetadataFileSuffix;
         if Utils.FileExists(MetaPath) then begin
@@ -288,16 +284,14 @@ begin
       const ObjFileContents = Utils.FileReadAllBytes(ObjectPath);
       if ObjFileContents.Count > 0 then begin
         if DebugMode then begin
-          writeLn(String.Format("attempting to write object to '{0}'",
-                                LocalFilePath));
+          writeLn("attempting to write object to '{0}'", LocalFilePath);
         end;
         if Utils.FileWriteAllBytes(LocalFilePath, ObjFileContents) then begin
           BytesRetrieved := Int64(ObjFileContents.Count);
         end;
       end
       else begin
-        writeLn(String.Format("error: unable to read object file '{0}'",
-                              ObjectPath));
+        writeLn("error: unable to read object file '{0}'", ObjectPath);
       end;
     end;
   end;

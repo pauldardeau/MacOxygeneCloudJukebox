@@ -69,7 +69,7 @@ constructor JukeboxDB(aMetadataDbFilePath: String;
                       aUseCompression: Boolean;
                       aDebugPrint: Boolean);
 begin
-  DebugPrint := true; //debugPrint;
+  DebugPrint := aDebugPrint;
   UseEncryption := aUseEncryption;
   UseCompression := aUseCompression;
   DbConnection := nil;
@@ -78,6 +78,9 @@ begin
     MetadataDbFilePath := aMetadataDbFilePath
   else
     MetadataDbFilePath := "jukebox_db.sqlite3";
+  //if DebugPrint then begin
+    writeLn("JukeboxDB using file {0}", MetadataDbFilePath);
+  //end;
 end;
 
 //*******************************************************************************
@@ -100,7 +103,7 @@ begin
   const rawMetadataDbFilePath = encoding.GetBytes(MetadataDbFilePath);
 
   if libsqlite3.sqlite3_open(rawMetadataDbFilePath as ^AnsiChar, @DbConnection) <> libsqlite3.SQLITE_OK then begin
-    writeLn("error: unable to open SQLite db");
+    writeLn("error: unable to open SQLite db file '{0}", MetadataDbFilePath);
   end
   else begin
     if not HaveTables then begin
@@ -180,7 +183,7 @@ begin
       exit;
     end
     else begin
-      writeLn(String.Format("error: prepare of sql failed: {0}", SqlStatement));
+      writeLn("error: prepare of sql failed: {0}", SqlStatement);
     end;
   end;
   result := nil;
@@ -224,39 +227,40 @@ begin
     exit;
   end;
 
-  var queryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
+  try
+    var queryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
 
-  if 0 <> queryCount then begin
-    writeLn(String.Format("Error: the bind count is not correct for the #" +
-                          " of variables ({0}) (executeUpdate)",
-                          SqlStatement));
-    libsqlite3.sqlite3_finalize(Stmt);
-    RowsAffectedCount := 0;
-    result := false;
-    exit;
+    if 0 <> queryCount then begin
+      writeLn("Error: the bind count is not correct for the #" +
+              " of variables ({0}) (executeUpdate)",
+              SqlStatement);
+      RowsAffectedCount := 0;
+      result := false;
+      exit;
+    end;
+
+    rc := libsqlite3.sqlite3_step(Stmt);
+
+    if (libsqlite3.SQLITE_DONE = rc) or (libsqlite3.SQLITE_ROW = rc) then begin
+      // all is well, let's return.
+    end
+    else if libsqlite3.SQLITE_ERROR = rc then begin
+      writeLn("Error calling sqlite3_step ({0}) SQLITE_ERROR", rc);
+      writeLn("DB Query: {0}", SqlStatement);
+    end
+    else if libsqlite3.SQLITE_MISUSE = rc then begin
+      writeLn("Error calling sqlite3_step ({0}) SQLITE_MISUSE", rc);
+      writeLn("DB Query: {0}", SqlStatement);
+    end
+    else begin
+      writeLn("Unknown error calling sqlite3_step ({0}) other error", rc);
+      writeLn("DB Query: {0}", SqlStatement);
+    end;
+
+    assert(rc <> libsqlite3.SQLITE_ROW);
+  finally
+    rc := libsqlite3.sqlite3_finalize(Stmt);
   end;
-
-  rc := libsqlite3.sqlite3_step(Stmt);
-
-  if (libsqlite3.SQLITE_DONE = rc) or (libsqlite3.SQLITE_ROW = rc) then begin
-    // all is well, let's return.
-  end
-  else if libsqlite3.SQLITE_ERROR = rc then begin
-    writeLn(String.Format("Error calling sqlite3_step ({0}) SQLITE_ERROR", rc));
-    writeLn(String.Format("DB Query: {0}", SqlStatement));
-  end
-  else if libsqlite3.SQLITE_MISUSE = rc then begin
-    writeLn(String.Format("Error calling sqlite3_step ({0}) SQLITE_MISUSE", rc));
-    writeLn(String.Format("DB Query: {0}", SqlStatement));
-  end
-  else begin
-    writeLn(String.Format("Unknown error calling sqlite3_step ({0}) other error", rc));
-    writeLn(String.Format("DB Query: {0}", SqlStatement));
-  end;
-
-  assert(rc <> libsqlite3.SQLITE_ROW);
-
-  rc := libsqlite3.sqlite3_finalize(Stmt);
 
   SqlSuccess := (rc = libsqlite3.SQLITE_OK);
 
@@ -295,75 +299,75 @@ begin
     exit;
   end;
 
-  var QueryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
+  try
+    var QueryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
 
-  if Arguments.Count() <> QueryCount then begin
-    writeLn(String.Format("Error: the bind count is not correct for the #" +
-                          " of variables ({0}) (executeUpdate)",
-                          SqlStatement));
-    libsqlite3.sqlite3_finalize(Stmt);
-    RowsAffectedCount := 0;
-    result := false;
-    exit;
-  end;
-
-  var argIndex := 0;
-
-  for each arg in Arguments.ListProps do begin
-    inc(argIndex);
-    if arg.IsInt() then
-      rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, arg.GetIntValue())
-    else if arg.IsLong() then
-      rc := libsqlite3.sqlite3_bind_int64(Stmt, argIndex, arg.GetLongValue())
-    else if arg.IsULong() then begin
-      longValue := Int64(arg.GetULongValue());
-      rc := libsqlite3.sqlite3_bind_int64(Stmt, argIndex, longValue);
-    end
-    else if arg.IsBool() then begin
-      boolValue := arg.GetBoolValue();
-      if boolValue then
-        rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 1)
-      else
-        rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 0);
-    end
-    else if arg.IsString() then begin
-      const rawArgument = MakeCStringFromString(arg.GetStringValue()) as ^AnsiChar;
-      rc := libsqlite3.sqlite3_bind_text(Stmt, argIndex, rawArgument, -1, nil)
-    end
-    else if arg.IsDouble() then
-      rc := libsqlite3.sqlite3_bind_double(Stmt, argIndex, arg.GetDoubleValue())
-    else if arg.IsNull() then
-      rc := libsqlite3.sqlite3_bind_null(Stmt, argIndex);
-
-    if rc <> libsqlite3.SQLITE_OK then begin
-      libsqlite3.sqlite3_finalize(Stmt);
-      writeLn(String.Format("Error: unable to bind argument {0}, rc={1}", argIndex, rc));
+    if Arguments.Count() <> QueryCount then begin
+      writeLn("Error: the bind count is not correct for the #" +
+              " of variables ({0}) (executeUpdate)",
+              SqlStatement);
+      RowsAffectedCount := 0;
       result := false;
       exit;
     end;
+
+    var argIndex := 0;
+
+    for each arg in Arguments.ListProps do begin
+      inc(argIndex);
+      if arg.IsInt() then
+        rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, arg.GetIntValue())
+      else if arg.IsLong() then
+        rc := libsqlite3.sqlite3_bind_int64(Stmt, argIndex, arg.GetLongValue())
+      else if arg.IsULong() then begin
+        longValue := Int64(arg.GetULongValue());
+        rc := libsqlite3.sqlite3_bind_int64(Stmt, argIndex, longValue);
+      end
+      else if arg.IsBool() then begin
+        boolValue := arg.GetBoolValue();
+        if boolValue then
+          rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 1)
+        else
+          rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 0);
+      end
+      else if arg.IsString() then begin
+        const rawArgument = MakeCStringFromString(arg.GetStringValue()) as ^AnsiChar;
+        rc := libsqlite3.sqlite3_bind_text(Stmt, argIndex, rawArgument, -1, nil)
+      end
+      else if arg.IsDouble() then
+        rc := libsqlite3.sqlite3_bind_double(Stmt, argIndex, arg.GetDoubleValue())
+      else if arg.IsNull() then
+        rc := libsqlite3.sqlite3_bind_null(Stmt, argIndex);
+
+      if rc <> libsqlite3.SQLITE_OK then begin
+        writeLn("Error: unable to bind argument {0}, rc={1}", argIndex, rc);
+        result := false;
+        exit;
+      end;
+    end;
+
+    rc := libsqlite3.sqlite3_step(Stmt);
+
+    if (libsqlite3.SQLITE_DONE = rc) or (libsqlite3.SQLITE_ROW = rc) then begin
+      // all is well, let's return.
+    end
+    else if libsqlite3.SQLITE_ERROR = rc then begin
+      writeLn("Error calling sqlite3_step ({0}) SQLITE_ERROR", rc);
+      writeLn("DB Query: {0}", SqlStatement);
+    end
+    else if libsqlite3.SQLITE_MISUSE = rc then begin
+      writeLn("Error calling sqlite3_step ({0}) SQLITE_MISUSE", rc);
+      writeLn("DB Query: {0}", SqlStatement);
+    end
+    else begin
+      writeLn("Unknown error calling sqlite3_step ({0}) other error", rc);
+      writeLn("DB Query: {0}", SqlStatement);
+    end;
+
+    assert(rc <> libsqlite3.SQLITE_ROW);
+  finally
+    rc := libsqlite3.sqlite3_finalize(Stmt);
   end;
-
-  rc := libsqlite3.sqlite3_step(Stmt);
-
-  if (libsqlite3.SQLITE_DONE = rc) or (libsqlite3.SQLITE_ROW = rc) then begin
-    // all is well, let's return.
-  end
-  else if libsqlite3.SQLITE_ERROR = rc then begin
-    writeLn(String.Format("Error calling sqlite3_step ({0}) SQLITE_ERROR", rc));
-    writeLn(String.Format("DB Query: {0}", SqlStatement));
-  end
-  else if libsqlite3.SQLITE_MISUSE = rc then begin
-    writeLn(String.Format("Error calling sqlite3_step ({0}) SQLITE_MISUSE", rc));
-    writeLn(String.Format("DB Query: {0}", SqlStatement));
-  end
-  else begin
-    writeLn(String.Format("Unknown error calling sqlite3_step ({0}) other error", rc));
-    writeLn(String.Format("DB Query: {0}", SqlStatement));
-  end;
-
-  assert(rc <> libsqlite3.SQLITE_ROW);
-
-  rc := libsqlite3.sqlite3_finalize(Stmt);
 
   SqlSuccess := (rc = libsqlite3.SQLITE_OK);
 
@@ -451,19 +455,22 @@ begin
   if DbConnection <> nil then begin
     var Stmt := PrepareStatement(SqlStatement);
     if Stmt = nil then begin
-      writeLn(String.Format("prepare of statement failed: {0}", SqlStatement));
+      writeLn("prepare of statement failed: {0}", SqlStatement);
       result := false;
       exit;
     end;
 
-    if not StepStatement(Stmt) then begin
-      writeLn("error: creation of table failed");
-      writeLn(SqlStatement);
-    end
-    else begin
-      DidSucceed := true;
+    try
+      if not StepStatement(Stmt) then begin
+        writeLn("error: creation of table failed");
+        writeLn(SqlStatement);
+      end
+      else begin
+        DidSucceed := true;
+      end;
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-    libsqlite3.sqlite3_finalize(Stmt);
   end;
   result := DidSucceed;
 end;
@@ -550,13 +557,16 @@ begin
       exit;
     end;
 
-    if libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW then begin
-      var Count := libsqlite3.sqlite3_column_int(Stmt, 0);
-      if Count > 0 then begin
-        HaveTablesInDb := true;
+    try
+      if libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW then begin
+        var Count := libsqlite3.sqlite3_column_int(Stmt, 0);
+        if Count > 0 then begin
+          HaveTablesInDb := true;
+        end;
       end;
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-    libsqlite3.sqlite3_finalize(Stmt);
   end;
 
   result := HaveTablesInDb;
@@ -578,19 +588,16 @@ begin
     if Stmt = nil then begin
       result := nil;
       exit;
-    end
-    else begin
+    end;
+
+    try
       if libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW then begin
         var QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-        if QueryResultCol1 = nil then begin
-          writeLn("Query result is nil");
-          result := nil;
-          exit;
-        end
-        else begin
+        if QueryResultCol1 <> nil then begin
           PlObject := MakeStringFromCString(QueryResultCol1);
         end;
       end;
+    finally
       libsqlite3.sqlite3_finalize(Stmt);
     end;
   end;
@@ -664,11 +671,14 @@ begin
       exit;
     end;
 
-    var SongResults := SongsForQueryResults(Stmt);
-    if SongResults.Count > 0 then begin
-      Song := SongResults[0];
+    try
+      var SongResults := SongsForQueryResults(Stmt);
+      if SongResults.Count > 0 then begin
+        Song := SongResults[0];
+      end;
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-    libsqlite3.sqlite3_finalize(Stmt);
   end;
   result := Song;
 end;
@@ -936,10 +946,17 @@ begin
       SqlQuery := SqlQuery + AddedClause;
     end;
 
-    writeLn(String.Format("executing query: {0}", SqlQuery));
+    if DebugPrint then begin
+      writeLn("executing query: {0}", SqlQuery);
+    end;
+
     var Stmt := PrepareStatement(SqlQuery);
     if Stmt <> nil then begin
-      Songs := SongsForQueryResults(Stmt);
+      try
+        Songs := SongsForQueryResults(Stmt);
+      finally
+        libsqlite3.sqlite3_finalize(Stmt);
+      end;
     end;
   end;
 
@@ -973,7 +990,11 @@ begin
     SqlQuery := SqlQuery + " AND artist = ?";
     var Stmt := PrepareStatement(SqlQuery);
     if Stmt <> nil then begin
-      Songs := SongsForQueryResults(Stmt);
+      try
+        Songs := SongsForQueryResults(Stmt);
+      finally
+        libsqlite3.sqlite3_finalize(Stmt);
+      end;
     end;
   end;
   result := Songs;
@@ -998,16 +1019,19 @@ begin
       exit;
     end;
 
-    while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-      QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-      QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
-      if (QueryResultCol1 <> nil) and (QueryResultCol2 <> nil) then begin
-        Artist := MakeStringFromCString(QueryResultCol1);
-        Song := MakeStringFromCString(QueryResultCol2);
-        writeLn(String.Format("{0}, {1}", Artist, Song));
+    try
+      while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
+        QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
+        if (QueryResultCol1 <> nil) and (QueryResultCol2 <> nil) then begin
+          Artist := MakeStringFromCString(QueryResultCol1);
+          Song := MakeStringFromCString(QueryResultCol2);
+          writeLn("{0}, {1}", Artist, Song);
+        end;
       end;
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-    libsqlite3.sqlite3_finalize(Stmt);
   end
   else begin
     writeLn("error: DbConnection is nil");
@@ -1030,14 +1054,17 @@ begin
       exit;
     end;
 
-    while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-      QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-      if QueryResultCol1 <> nil then begin
-        Artist := MakeStringFromCString(QueryResultCol1);
-        writeLn(Artist);
+    try
+      while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
+        QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        if QueryResultCol1 <> nil then begin
+          Artist := MakeStringFromCString(QueryResultCol1);
+          writeLn(Artist);
+        end;
       end;
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-    libsqlite3.sqlite3_finalize(Stmt);
   end;
 end;
 
@@ -1057,18 +1084,17 @@ begin
       exit;
     end;
 
-    while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-      QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-      if QueryResultCol1 = nil then begin
-        writeLn("Query result is nil");
-        libsqlite3.sqlite3_finalize(Stmt);
-        exit;
+    try
+      while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
+        QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        if QueryResultCol1 <> nil then begin
+          GenreName := MakeStringFromCString(QueryResultCol1);
+          writeLn(GenreName);
+        end;
       end;
-
-      GenreName := MakeStringFromCString(QueryResultCol1);
-      writeLn(GenreName);
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-    libsqlite3.sqlite3_finalize(Stmt);
   end;
 end;
 
@@ -1091,25 +1117,19 @@ begin
       exit;
     end;
 
-    while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-      QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-      if QueryResultCol1 = nil then begin
-        writeLn("Query result is nil");
-        libsqlite3.sqlite3_finalize(Stmt);
-        exit;
+    try
+      while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
+        QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
+        if (QueryResultCol1 <> nil) and (QueryResultCol2 <> nil) then begin
+          AlbumName := MakeStringFromCString(QueryResultCol1);
+          ArtistName := MakeStringFromCString(QueryResultCol2);
+          writeLn("{0} ({1})", AlbumName, ArtistName);
+        end;
       end;
-      QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
-      if QueryResultCol2 = nil then begin
-        writeLn("Query result is nil");
-        libsqlite3.sqlite3_finalize(Stmt);
-        exit;
-      end;
-
-      AlbumName := MakeStringFromCString(QueryResultCol1);
-      ArtistName := MakeStringFromCString(QueryResultCol2);
-      writeLn(String.Format("{0} ({1})", AlbumName, ArtistName));
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-    libsqlite3.sqlite3_finalize(Stmt);
   end;
 end;
 
@@ -1131,26 +1151,26 @@ begin
       exit;
     end;
 
-    while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-      QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-      if QueryResultCol1 = nil then begin
-        writeLn("Query result is nil");
-        libsqlite3.sqlite3_finalize(Stmt);
-        exit;
-      end;
-      QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
-      if QueryResultCol2 = nil then begin
-        writeLn("Query result is nil");
-        libsqlite3.sqlite3_finalize(Stmt);
-        exit;
-      end;
+    try
+      while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
+        QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        if QueryResultCol1 = nil then begin
+          writeLn("Query result is nil");
+          exit;
+        end;
+        QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
+        if QueryResultCol2 = nil then begin
+          writeLn("Query result is nil");
+          exit;
+        end;
 
-      plUid := MakeStringFromCString(QueryResultCol1);
-      plName := MakeStringFromCString(QueryResultCol2);
-      writeLn(plUid + " - " + plName);
+        plUid := MakeStringFromCString(QueryResultCol1);
+        plName := MakeStringFromCString(QueryResultCol2);
+        writeLn(plUid + " - " + plName);
+      end;
+    finally
+      libsqlite3.sqlite3_finalize(Stmt);
     end;
-
-    libsqlite3.sqlite3_finalize(Stmt);
   end;
 end;
 
@@ -1178,7 +1198,7 @@ begin
 
       if not ExecuteUpdate(SqlStatement, var RowsAffected, ArgList) then begin
         Rollback;
-        writeLn(String.Format("error: unable to delete song '{0}'", SongUid));
+        writeLn("error: unable to delete song '{0}'", SongUid);
       end
       else begin
         WasDeleted := Commit;
@@ -1202,7 +1222,8 @@ begin
 
     //var encoding := RemObjects.Elements.RTL.Encoding.DetectFromBytes(CString as array  of Byte);
     //result := encoding.GetString(CString as array  of Byte);
-    result := new Foundation.NSString withCString(^AnsiChar(CString)) encoding(Foundation.NSStringEncoding.NSUTF8StringEncoding);
+    result := new Foundation.NSString withCString(^AnsiChar(CString))
+                                      encoding(Foundation.NSStringEncoding.NSUTF8StringEncoding);
   end;
 end;
 
@@ -1217,5 +1238,7 @@ begin
     result := s.ToByteArray();
   end;
 end;
+
+//*******************************************************************************
 
 end.

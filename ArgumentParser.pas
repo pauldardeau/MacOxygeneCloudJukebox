@@ -128,7 +128,7 @@ begin
       ArgType := DictAllReservedWords[Arg];
       Arg := Arg.Substring(2);
       if ArgType = TypeBool then begin
-        //writeLn(String.Format("adding key={0} value=true", Arg));
+        //writeLn("adding key={0} value=true", Arg);
         ps.Add(Arg, new PropertyValue(true));
       end
       else if ArgType = TypeInt then begin
@@ -137,7 +137,7 @@ begin
           NextArg := Args[I];
           var IntValue := Convert.TryToInt32(NextArg);
           if IntValue <> nil then begin
-            //writeLn(String.Format("adding key={0} value={1}", Arg, IntValue));
+            //writeLn("adding key={0} value={1}", Arg, IntValue);
             ps.Add(Arg, new PropertyValue(IntValue));
           end;
         end
@@ -149,7 +149,7 @@ begin
         inc(I);
         if I < NumArgs then begin
           NextArg := Args[I];
-          //writeLn(String.Format("adding key={0} value={1}", Arg, NextArg));
+          //writeLn("adding key={0} value={1}", Arg, NextArg);
           ps.Add(Arg, new PropertyValue(NextArg));
         end
         else begin
@@ -167,7 +167,7 @@ begin
       else begin
         if CommandsFound < ListCommands.Count then begin
           CommandName := ListCommands[CommandsFound];
-          //writeLn(String.Format("adding key={0} value={1}", CommandName, Arg));
+          //writeLn("adding key={0} value={1}", CommandName, Arg);
           ps.Add(CommandName, new PropertyValue(Arg));
           inc(CommandsFound);
         end

@@ -239,7 +239,7 @@ begin
                       Add(PropName, new PropertyValue(false));
                     end
                     else begin
-                      writeLn(String.Format("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeBool, PropName));
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeBool, PropName);
                     end;
                   end
                   else if DataType = typeString then begin
@@ -251,7 +251,7 @@ begin
                       Add(PropName, new PropertyValue(IntValue));
                     end
                     else begin
-                      writeLn(String.Format("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeInt, PropName));
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeInt, PropName);
                     end;
                   end
                   else if DataType = typeLong then begin
@@ -260,7 +260,7 @@ begin
                       Add(PropName, new PropertyValue(LongValue));
                     end
                     else begin
-                      writeLn(String.Format("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeLong, PropName));
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeLong, PropName);
                     end;
                   end
                   else if DataType = typeULong then begin
@@ -269,11 +269,11 @@ begin
                       Add(PropName, new PropertyValue(ULongValue));
                     end
                     else begin
-                      writeLn(String.Format("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeULong, PropName));
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeULong, PropName);
                     end;
                   end
                   else begin
-                    writeLn(String.Format("error: unrecognized data type '{0}' for property '{1}'", DataType, PropName));
+                    writeLn("error: unrecognized data type '{0}' for property '{1}'", DataType, PropName);
                   end;
                 end;
               end;
