@@ -1111,7 +1111,7 @@ begin
   if DownloadSong(aSongList[0]) then begin
     writeLn("first song downloaded. starting playing now.");
 
-    const pidAsText = String.Format("{0}\n", Utils.GetPid());
+    const pidAsText = String.Format("{0}" + Environment.LineBreak, Utils.GetPid());
     const pidFilePath = Utils.PathJoin(JukeboxOptions.Directory, "jukebox.pid");
     Utils.FileWriteAllText(pidFilePath, pidAsText);
 
@@ -1659,3 +1659,4 @@ end;
 //*******************************************************************************
 
 end.
+
