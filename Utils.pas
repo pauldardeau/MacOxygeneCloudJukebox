@@ -288,8 +288,16 @@ type
 
     method GetPid(): Integer;
     begin
-      //TODO: implement GetPid
-      result := 0; //RemObjects.Elements.System.Process.CurrentProcessId();
+      {$IFDEF MACOS}
+        //TODO: obtain PID on MacOS
+        result := 0;
+      {$ELSE}
+        {$IFDEF ISLAND}
+          result := RemObjects.Elements.System.Process.CurrentProcessId();
+        {$ELSE}
+          result := 0;
+        {$ENDIF}
+      {$ENDIF}
     end;
 
 //*******************************************************************************
