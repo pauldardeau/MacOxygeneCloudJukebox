@@ -99,11 +99,10 @@ begin
   Close;
   OpenSuccess := false;
 
-  const encoding = Encoding.UTF8;
-  const rawMetadataDbFilePath = encoding.GetBytes(MetadataDbFilePath);
+  const rawMetadataDbFilePath = Encoding.ASCII.GetBytes(MetadataDbFilePath);
 
   if libsqlite3.sqlite3_open(rawMetadataDbFilePath as ^AnsiChar, @DbConnection) <> libsqlite3.SQLITE_OK then begin
-    writeLn("error: unable to open SQLite db file '{0}", MetadataDbFilePath);
+    writeLn("error: unable to open SQLite db file '{0}'", MetadataDbFilePath);
   end
   else begin
     if not HaveTables then begin
