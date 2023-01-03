@@ -729,7 +729,6 @@ begin
       exit;
     end;
 
-    //TODO: add FileName as parameter for query execution
     var Args := new PropertyList;
     Args.Append(new PropertyValue(FileName));
     if not BindStatementArguments(Stmt, Args) then begin
