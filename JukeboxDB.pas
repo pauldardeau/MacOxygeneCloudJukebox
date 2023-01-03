@@ -24,6 +24,8 @@ type
     method Leave;
     method PrepareStatement(SqlStatement: String): ^libsqlite3.sqlite3_stmt;
     method StepStatement(Statement: ^libsqlite3.sqlite3_stmt): Boolean;
+    method BindStatementArguments(Stmt: ^libsqlite3.sqlite3_stmt;
+                                  Arguments: PropertyList): Boolean;
     method ExecuteUpdate(SqlStatement: String;
                          var RowsAffectedCount: Integer): Boolean;
     method ExecuteUpdate(SqlStatement: String;
@@ -271,6 +273,63 @@ begin
   end;
 
   result := SqlSuccess;
+end;
+
+//*******************************************************************************
+
+method JukeboxDB.BindStatementArguments(Stmt: ^libsqlite3.sqlite3_stmt;
+                                        Arguments: PropertyList): Boolean;
+var
+  rc: Integer;
+  longValue: Int64;
+  boolValue: Boolean;
+begin
+  try
+    var QueryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
+
+    if Arguments.Count() <> QueryCount then begin
+      writeLn("Error: the bind count is not correct for the #" +
+              " of variables");
+      exit false;
+    end;
+
+    var argIndex := 0;
+
+    for each arg in Arguments.ListProps do begin
+      inc(argIndex);
+      if arg.IsInt() then
+        rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, arg.GetIntValue())
+      else if arg.IsLong() then
+        rc := libsqlite3.sqlite3_bind_int64(Stmt, argIndex, arg.GetLongValue())
+      else if arg.IsULong() then begin
+        longValue := Int64(arg.GetULongValue());
+        rc := libsqlite3.sqlite3_bind_int64(Stmt, argIndex, longValue);
+      end
+      else if arg.IsBool() then begin
+        boolValue := arg.GetBoolValue();
+        if boolValue then
+          rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 1)
+        else
+          rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 0);
+      end
+      else if arg.IsString() then begin
+        const rawArgument = MakeCStringFromString(arg.GetStringValue()) as ^AnsiChar;
+        rc := libsqlite3.sqlite3_bind_text(Stmt, argIndex, rawArgument, -1, nil)
+      end
+      else if arg.IsDouble() then
+        rc := libsqlite3.sqlite3_bind_double(Stmt, argIndex, arg.GetDoubleValue())
+      else if arg.IsNull() then
+        rc := libsqlite3.sqlite3_bind_null(Stmt, argIndex);
+
+      if rc <> libsqlite3.SQLITE_OK then begin
+        writeLn("Error: unable to bind argument {0}, rc={1}", argIndex, rc);
+        exit false;
+      end;
+    end;
+    exit true;
+  except
+    exit false;
+  end;
 end;
 
 //*******************************************************************************
@@ -668,6 +727,14 @@ begin
     if Stmt = nil then begin
       result := nil;
       exit;
+    end;
+
+    //TODO: add FileName as parameter for query execution
+    var Args := new PropertyList;
+    Args.Append(new PropertyValue(FileName));
+    if not BindStatementArguments(Stmt, Args) then begin
+      writeLn("error: unable to bind arguments");
+      exit nil;
     end;
 
     try

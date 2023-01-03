@@ -244,12 +244,17 @@ begin
     jukebox.ShowAlbums();
   end
   else if Command = "show-album" then begin
-    if Album.Length > 0 then begin
-      jukebox.ShowAlbum(Album);
+    if Artist.Length > 0 then begin
+      if Album.Length > 0 then begin
+        jukebox.ShowAlbum(Artist, Album);
+      end
+      else begin
+        writeLn("error: album must be specified using --album option");
+        ExitCode := 1;
+      end;
     end
     else begin
-      writeLn("error: album must be specified using --album option");
-      ExitCode := 1;
+      writeLn("error: artist must be specified using --artist option");
     end;
   end
   else if Command = "list-playlists" then begin

@@ -88,7 +88,7 @@ type
     method UploadMetadataDb: Boolean;
     method ImportPlaylists;
     method ShowPlaylists;
-    method ShowAlbum(Album: String);
+    method ShowAlbum(Artist: String; Album: String);
     method ShowPlaylist(Playlist: String);
     method PlayPlaylist(Playlist: String);
     method PlayAlbum(Artist: String; Album: String);
@@ -97,6 +97,9 @@ type
     method DeleteAlbum(Album: String): Boolean;
     method DeletePlaylist(PlaylistName: String): Boolean;
     method ImportAlbumArt;
+    method RetrieveAlbumTrackObjectList(Artist: String;
+                                        Album: String;
+                                        ListTrackObjects: List<String>): Boolean;
 
   end;
 
@@ -1027,7 +1030,28 @@ end;
 method Jukebox.PlaySongs(Shuffle: Boolean; Artist: String; Album: String);
 begin
   if JukeboxDb <> nil then begin
-    SongList := JukeboxDb.RetrieveSongs(Artist, Album);
+    var HaveSongs := false;
+    var aSongList := new List<SongMetadata>;
+    var ListTrackObjects := new List<String>;
+    if RetrieveAlbumTrackObjectList(Artist, Album, ListTrackObjects) then begin
+      if ListTrackObjects.Count > 0 then begin
+        for each TrackObjectName in ListTrackObjects do begin
+          var Song := JukeboxDb.RetrieveSong(TrackObjectName);
+          if Song <> nil then begin
+            aSongList.Add(Song);
+          end;
+        end;
+        if aSongList.Count = ListTrackObjects.Count then begin
+          HaveSongs := true;
+          SongList := aSongList;
+        end;
+      end;
+    end;
+
+    if not HaveSongs then begin
+      SongList := JukeboxDb.RetrieveSongs(Artist, Album);
+    end;
+
     PlaySongList(SongList, Shuffle);
   end;
 end;
@@ -1339,9 +1363,71 @@ end;
 
 //*******************************************************************************
 
-method Jukebox.ShowAlbum(Album: String);
+method Jukebox.RetrieveAlbumTrackObjectList(Artist: String;
+                                            Album: String;
+                                            ListTrackObjects: List<String>): Boolean;
 begin
-  //TODO: implement ShowAlbum
+  var Success := false;
+  const JsonFileName = String.Format("{0}--{1}.json", Artist, Album);
+  const LocalJsonFile = Utils.PathJoin(SongPlayDirPath, JsonFileName);
+  if StorageSystem.GetObject(Jukebox.albumContainer,
+                             JsonFileName,
+                             LocalJsonFile) > 0 then begin
+
+    const AlbumJsonContents = Utils.FileReadAllText(LocalJsonFile);
+    if AlbumJsonContents.Length > 0 then begin
+      var deserializer := new JsonDeserializer(AlbumJsonContents);
+      const AlbumJson = deserializer.Deserialize();
+      const TrackList = AlbumJson.Item["tracks"] as JsonArray;
+      const NumberTracks = TrackList.Count;
+      if NumberTracks > 0 then begin
+        for i := 0 to NumberTracks-1 do begin
+          const Track = TrackList.Item[i];
+          ListTrackObjects.Add(Track.Item["object"].ToString());
+        end;
+        Success := true;
+      end;
+    end
+    else begin
+      writeLn("Album json file is empty");
+    end;
+  end
+  else begin
+    writeLn("Unable to retrieve '{0}' from '{1}'", JsonFileName, Jukebox.albumContainer);
+  end;
+  result := Success;
+end;
+
+//*******************************************************************************
+
+method Jukebox.ShowAlbum(Artist: String; Album: String);
+begin
+  const EncodedAlbum = "Zebra--Zebra";
+  const JsonFileName = EncodedAlbum + ".json";
+  const LocalJsonFile = Utils.PathJoin(SongPlayDirPath, JsonFileName);
+  if StorageSystem.GetObject(Jukebox.albumContainer,
+                             JsonFileName,
+                             LocalJsonFile) > 0 then begin
+
+    const AlbumJsonContents = Utils.FileReadAllText(LocalJsonFile);
+    if AlbumJsonContents.Length > 0 then begin
+      var deserializer := new JsonDeserializer(AlbumJsonContents);
+      const AlbumJson = deserializer.Deserialize();
+      const TrackList = AlbumJson.Item["tracks"] as JsonArray;
+      const NumberTracks = TrackList.Count;
+      writeLn("Album: {0} ({1}):", Album, Artist);
+      for i := 0 to NumberTracks-1 do begin
+        const Track = TrackList.Item[i];
+        writeLn("{0} {1}", i+1, Track.Item["title"]);
+      end;
+    end
+    else begin
+      writeLn("Album json file is empty");
+    end;
+  end
+  else begin
+    writeLn("Unable to retrieve '{0}' from '{1}'", JsonFileName, Jukebox.albumContainer);
+  end;
 end;
 
 //*******************************************************************************
