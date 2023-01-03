@@ -11,13 +11,14 @@ type
     DictStringOptions: Dictionary<String, String>;
     DictCommands: Dictionary<String, String>;
     ListCommands: List<String>;
+    DebugMode: Boolean;
 
   public
     const TypeBool = 'bool';
     const TypeInt = 'int';
     const TypeString = 'string';
 
-    constructor();
+    constructor(aDebugMode: Boolean := false);
     method AddOption(O: String; OptionType: String; Help: String): Boolean;
     method AddOptionalBoolFlag(Flag: String; Help: String);
     method AddOptionalIntArgument(Arg: String; Help: String);
@@ -34,7 +35,7 @@ implementation
 
 //*******************************************************************************
 
-constructor ArgumentParser();
+constructor ArgumentParser(aDebugMode: Boolean);
 begin
   DictAllReservedWords := new Dictionary<String, String>;
   DictBoolOptions := new Dictionary<String, String>;
@@ -42,6 +43,7 @@ begin
   DictStringOptions := new Dictionary<String, String>;
   DictCommands := new Dictionary<String, String>;
   ListCommands := new List<String>;
+  DebugMode := aDebugMode;
 end;
 
 //*******************************************************************************
@@ -128,7 +130,9 @@ begin
       ArgType := DictAllReservedWords[Arg];
       Arg := Arg.Substring(2);
       if ArgType = TypeBool then begin
-        //writeLn("adding key={0} value=true", Arg);
+        if DebugMode then begin
+          writeLn("ArgumentParser: adding key={0} value=true", Arg);
+        end;
         ps.Add(Arg, new PropertyValue(true));
       end
       else if ArgType = TypeInt then begin
@@ -137,7 +141,9 @@ begin
           NextArg := Args[I];
           var IntValue := Convert.TryToInt32(NextArg);
           if IntValue <> nil then begin
-            //writeLn("adding key={0} value={1}", Arg, IntValue);
+            if DebugMode then begin
+              writeLn("ArgumentParser: adding key={0} value={1}", Arg, IntValue);
+            end;
             ps.Add(Arg, new PropertyValue(IntValue));
           end;
         end
@@ -149,7 +155,9 @@ begin
         inc(I);
         if I < NumArgs then begin
           NextArg := Args[I];
-          //writeLn("adding key={0} value={1}", Arg, NextArg);
+          if DebugMode then begin
+            writeLn("ArgumentParser: adding key={0} value={1}", Arg, NextArg);
+          end;
           ps.Add(Arg, new PropertyValue(NextArg));
         end
         else begin
@@ -167,7 +175,9 @@ begin
       else begin
         if CommandsFound < ListCommands.Count then begin
           CommandName := ListCommands[CommandsFound];
-          //writeLn("adding key={0} value={1}", CommandName, Arg);
+          if DebugMode then begin
+            writeLn("ArgumentParser: adding key={0} value={1}", CommandName, Arg);
+          end;
           ps.Add(CommandName, new PropertyValue(Arg));
           inc(CommandsFound);
         end

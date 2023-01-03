@@ -568,10 +568,13 @@ begin
                           var ExitCode,
                           out StdOut,
                           out StdErr) then begin
-    //writeLn("exit_code = {0}", exit_code);
-    //writeLn("*********** START STDOUT **************");
-    //writeLn("{0}", StdOut);
-    //writeLn("*********** END STDOUT **************");
+
+    if DebugMode then begin
+      writeLn("ExitCode = {0}", ExitCode);
+      writeLn("*********** START STDOUT **************");
+      writeLn("{0}", StdOut);
+      writeLn("*********** END STDOUT **************");
+    end;
 
     if ExitCode = 0 then begin
       if StdOut.Length() > 0 then begin
