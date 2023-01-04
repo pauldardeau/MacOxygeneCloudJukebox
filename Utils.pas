@@ -278,9 +278,96 @@ type
 
 //*******************************************************************************
 
-    method Md5ForFile(FilePath: String): String;
+    method Md5ForFile(IniFileName: String; PathToFile: String): String;
     begin
-      //TODO: implement Md5ForFile
+      if not FileExists(IniFileName) then begin
+        writeLn("error (md5_for_file): ini file does not exist '{0}'", IniFileName);
+        exit "";
+      end;
+
+      if not FileExists(PathToFile) then begin
+        writeLn("error (md5_for_file): file does not exist '%s'", PathToFile);
+        exit "";
+      end;
+
+      var Kvp := new KeyValuePairs;
+      if GetPlatformConfigValues(IniFileName, Kvp) then begin
+        const KeyExe = "md5_exe_file_name";
+        const KeyFieldNumber = "md5_hash_output_field";
+        if Kvp.HasKey(KeyExe) then begin 
+          const Md5Exe = Kvp.GetValue(KeyExe);
+          if not FileExists(Md5Exe) then begin 
+            writeLn("error: md5 executable not found: '{0}'", Md5Exe);
+            exit "";
+          end;
+
+          var ProgramArgs := new List<String>;
+          ProgramArgs.Add(PathToFile);
+          var ExitCode := 0;
+	  var StdOut := "";
+	  var StdErr := "";
+
+          if ExecuteProgram(Md5Exe,
+                            ProgramArgs,
+                            var ExitCode,
+                            out StdOut,
+                            out StdErr) then begin
+            if ExitCode = 0 then begin
+              if StdOut.Length() > 0 then begin
+                const FieldNumber = 1;
+                if Kvp.HasKey(KeyFieldNumber) then begin
+                  const FieldNumberText = Kvp.GetValue(KeyFieldNumber);
+                  if FieldNumberText.Length() > 0 then begin
+                    try
+                      FieldNumber := Convert.ToInt(FieldNumberText);
+                    except
+                      writeLn("error: unable to convert value '{0}' for '{1}' to integer",
+                              FieldNumberText,
+                              KeyFieldNumber);
+                      writeLn("will attempt to use first field");
+		    end;
+		  end;
+	        end;
+                const FileLines = StdOut.Split(Environment.LineBreak);
+                if FileLines.size() > 0 then begin
+                  const FirstLine = FileLines[0];
+                  const LineFields = FirstLine.split(" ");
+                  if LineFields.size() > 0 then begin
+                    exit LineFields[FieldNumber-1];
+                  end
+		  else begin
+                    if FirstLine.Length() > 0 then begin 
+                      exit FirstLine;
+                    end
+                    else begin
+                      writeLn("error: md5_for_file - first stdout line is empty");
+		    end;
+		  end;
+                end
+		else begin
+                  writeLn("error: md5_for_file - stdout split by lines is empty");
+	        end;
+              end
+	      else begin 
+                writeLn("error: md5_for_file - no content for stdout captured");
+	      end;
+            end
+	    else begin
+              writeLn("error: md5_for_file - non-zero exit code for md5 utility. value={0}", ExitCode);
+            end;
+          end
+	  else begin
+            writeLn("error: md5_for_file - unable to execute md5 sum utility '{0}'", Md5Exe);
+          end;
+        end
+        else begin
+          writeLn("error: md5_for_file - no value present for '{0}'", KeyExe);
+        end;
+      end
+      else begin
+        writeLn("error: md5_for_file - unable to retrieve platform config values");
+      end;
+
       result := '';
     end;
 
