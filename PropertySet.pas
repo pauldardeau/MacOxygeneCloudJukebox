@@ -168,6 +168,7 @@ var
   FileContents: StringBuilder;
 begin
   FileContents := new StringBuilder;
+  const nl = Environment.LineBreak;
 
   for each PropName in GetKeys() do begin
     const PV = Get(PropName);
@@ -180,22 +181,22 @@ begin
       else begin
         BoolValue := valueFalse;
       end;
-      FileContents.Append(String.Format("{0}|{1}|{2}\n", typeBool, PropName, BoolValue));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeBool, PropName, BoolValue));
     end
     else if PV.IsString() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}\n", typeString, PropName, PV.GetStringValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeString, PropName, PV.GetStringValue()));
     end
     else if PV.IsInt() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}\n", typeInt, PropName, PV.GetIntValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeInt, PropName, PV.GetIntValue()));
     end
     else if PV.IsLong() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}\n", typeLong, PropName, PV.GetLongValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeLong, PropName, PV.GetLongValue()));
     end
     else if PV.IsULong() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}\n", typeULong, PropName, PV.GetULongValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeULong, PropName, PV.GetULongValue()));
     end
     else if PV.IsNull() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}\n", typeNull, PropName, " "));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeNull, PropName, " "));
     end;
   end;
 
@@ -216,7 +217,7 @@ begin
   const FileContents = Utils.FileReadAllText(FileName);
   if FileContents <> nil then begin
     if FileContents.Length > 0 then begin
-      const FileLines = FileContents.Split("\n");
+      const FileLines = FileContents.Split(Environment.LineBreak);
       for each FileLine in FileLines do begin
         const StrippedFileLine = FileLine.Trim();
         if StrippedFileLine.Length > 0 then begin
@@ -290,3 +291,4 @@ end;
 //*******************************************************************************
 
 end.
+
