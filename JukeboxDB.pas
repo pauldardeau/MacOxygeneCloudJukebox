@@ -11,6 +11,7 @@ type
     DbConnection: ^libsqlite3.sqlite3;
     MetadataDbFilePath: String;
     InTransaction: Boolean;
+    PsRetrieveSong: ^libsqlite3.sqlite3_stmt;
 
   public
     constructor(aMetadataDbFilePath: String;
@@ -75,6 +76,7 @@ begin
   UseEncryption := aUseEncryption;
   UseCompression := aUseCompression;
   DbConnection := nil;
+  PsRetrieveSong := nil;
   InTransaction := false;
   if aMetadataDbFilePath.Length > 0 then
     MetadataDbFilePath := aMetadataDbFilePath
@@ -128,6 +130,10 @@ var
 begin
   DidClose := false;
   if DbConnection <> nil then begin
+    if PsRetrieveSong <> nil then begin
+      libsqlite3.sqlite3_finalize(PsRetrieveSong);
+      PsRetrieveSong := nil;
+    end;
     libsqlite3.sqlite3_close(DbConnection);
     DbConnection := nil;
     DidClose := true;
@@ -160,6 +166,11 @@ end;
 method JukeboxDB.Leave;
 begin
   if DbConnection <> nil then begin
+    if PsRetrieveSong <> nil then begin
+      libsqlite3.sqlite3_finalize(PsRetrieveSong);
+      PsRetrieveSong := nil;
+    end;
+
     libsqlite3.sqlite3_close(DbConnection);
     DbConnection := nil;
   end;
@@ -707,43 +718,48 @@ begin
   Song := nil;
 
   if DbConnection <> nil then begin
-    const SqlQuery = "SELECT song_uid," +
-                            "file_time," +
-                            "origin_file_size," +
-                            "stored_file_size," +
-                            "pad_char_count," +
-                            "artist_name," +
-                            "artist_uid," +
-                            "song_name," +
-                            "md5_hash," +
-                            "compressed," +
-                            "encrypted," +
-                            "container_name," +
-                            "object_name," +
-                            "album_uid " +
-                     "FROM song " +
-                     "WHERE song_uid = ?";
-    var Stmt := PrepareStatement(SqlQuery);
-    if Stmt = nil then begin
-      result := nil;
-      exit;
+    if PsRetrieveSong = nil then begin
+      const SqlQuery = "SELECT song_uid," +
+                              "file_time," +
+                              "origin_file_size," +
+                              "stored_file_size," +
+                              "pad_char_count," +
+                              "artist_name," +
+                              "artist_uid," +
+                              "song_name," +
+                              "md5_hash," +
+                              "compressed," +
+                              "encrypted," +
+                              "container_name," +
+                              "object_name," +
+                              "album_uid " +
+                       "FROM song " +
+                       "WHERE song_uid = ?";
+      var Stmt := PrepareStatement(SqlQuery);
+      if Stmt = nil then begin
+        result := nil;
+        exit;
+      end
+      else begin
+        PsRetrieveSong := Stmt;
+      end;
     end;
 
-    //TODO: add FileName as parameter for query execution
     var Args := new PropertyList;
     Args.Append(new PropertyValue(FileName));
-    if not BindStatementArguments(Stmt, Args) then begin
+    if not BindStatementArguments(PsRetrieveSong, Args) then begin
       writeLn("error: unable to bind arguments");
       exit nil;
     end;
 
     try
-      var SongResults := SongsForQueryResults(Stmt);
+      var SongResults := SongsForQueryResults(PsRetrieveSong);
       if SongResults.Count > 0 then begin
         Song := SongResults[0];
       end;
     finally
-      libsqlite3.sqlite3_finalize(Stmt);
+      libsqlite3.sqlite3_clear_bindings(PsRetrieveSong);
+      libsqlite3.sqlite3_reset(PsRetrieveSong);
     end;
   end;
   result := Song;
