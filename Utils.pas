@@ -4,6 +4,10 @@ type
   Utils = public static class
 
   public
+    const PLATFORM_MAC = "mac";
+    const PLATFORM_LINUX = "linux";
+    const PLATFORM_WINDOWS = "windows";
+    const PLATFORM_UNKNOWN = "unknown";
 
 //*******************************************************************************
 
@@ -440,6 +444,52 @@ type
 
 //*******************************************************************************
 
+    method GetPlatformIdentifier(): String;
+    var
+      OsIdentifier: String;
+    begin
+      {$IFDEF MACOS}
+      OsIdentifier := PLATFORM_MAC;
+      {$ELSEIF LINUX}
+      OsIdentifier := PLATFORM_LINUX;
+      {$ELSEIF WINDOWS}
+      OsIdentifier := PLATFORM_WINDOWS;
+      {$ELSE}
+      OsIdentifier := PLATFORM_UNKNOWN;
+      {$ENDIF}
+
+      exit OsIdentifier;
+    end;
+
+//*******************************************************************************
+
+    method GetPlatformConfigValues(IniFileName: String;
+	                           Kvp: KeyValuePairs): Boolean;
+    begin
+      const OsIdentifier = GetPlatformIdentifier();
+      if (OsIdentifier = PLATFORM_UNKNOWN) or (OsIdentifier.Length() = 0) then begin 
+        writeLn("error: unknown platform");
+        exit false;
+      end;
+
+      try
+        const Reader = new IniReader(IniFileName);
+        if not Reader.ReadSection(OsIdentifier, Kvp) then begin
+          writeLn("error: no config section present for '{0}'", OsIdentifier);
+          exit false;
+        end
+	else begin 
+          exit true;
+        end;
+      except
+        writeLn("error: unable to read {0}", IniFileName);
+        exit false;
+      end;
+    end;
+
+//*******************************************************************************
+
   end;
 
 end.
+
