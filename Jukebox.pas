@@ -42,6 +42,7 @@ type
     SongSecondsOffset: Integer;
     Downloader: SongDownloader;
     DownloadThread: Thread;
+    IniFilePath: String;
 
   public
     class method InitializeStorageSystem(StorageSys: StorageSystem;
@@ -183,6 +184,7 @@ begin
   SongSecondsOffset := 0;
   Downloader := nil;
   DownloadThread := nil;
+  IniFilePath := Utils.PathJoin(JbOptions.Directory, "jukebox.ini");
 
   if JukeboxOptions.DebugMode then begin
     DebugPrint := true;
@@ -585,7 +587,7 @@ begin
             //fsSong.Fm.FileTime = oFile.DateModified
             fsSong.ArtistName := artist;
             fsSong.SongName := song;
-            const md5Hash = Utils.Md5ForFile(FullPath);
+            const md5Hash = Utils.Md5ForFile(IniFilePath, FullPath);
             if md5Hash.Length > 0 then begin
               fsSong.Fm.Md5Hash := md5Hash;
             end;
@@ -730,7 +732,7 @@ begin
       if DebugPrint then
         writeLn("checking integrity for {0}", Song.Fm.FileUid);
 
-      var PlaylistMd5 := Utils.Md5ForFile(FilePath);
+      var PlaylistMd5 := Utils.Md5ForFile(IniFilePath, FilePath);
       if PlaylistMd5.Length = 0 then begin
         writeLn("error: unable to calculate MD5 hash for file '{0}'", FilePath);
         FileIntegrityPassed := false;
@@ -1659,4 +1661,3 @@ end;
 //*******************************************************************************
 
 end.
-

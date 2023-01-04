@@ -49,6 +49,7 @@
     <Compile Include="SongDownloader.pas" />
     <Compile Include="S3ExtStorageSystem.pas" />
     <Compile Include="KeyValuePairs.pas" />
+    <Compile Include="IniReader.pas" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
 </Project>
