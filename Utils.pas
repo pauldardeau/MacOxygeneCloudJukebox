@@ -287,12 +287,12 @@ type
 		method Md5ForFile(IniFileName: String; PathToFile: String): String;
 		begin
 			if not FileExists(IniFileName) then begin
-				writeLn("error (md5_for_file): ini file does not exist '{0}'", IniFileName);
+				writeLn("error (Md5ForFile): ini file does not exist '{0}'", IniFileName);
 				exit "";
 			end;
 
 			if not FileExists(PathToFile) then begin
-				writeLn("error (md5_for_file): file does not exist '%s'", PathToFile);
+				writeLn("error (Md5ForFile): file does not exist '%s'", PathToFile);
 				exit "";
 			end;
 
@@ -346,32 +346,32 @@ type
 											exit FirstLine;
 										end
 										else begin
-											writeLn("error: md5_for_file - first stdout line is empty");
+											writeLn("error: Md5ForFile - first stdout line is empty");
 										end;
 									end;
 								end
 								else begin
-									writeLn("error: md5_for_file - stdout split by lines is empty");
+									writeLn("error: Md5ForFile - stdout split by lines is empty");
 								end;
 							end
 							else begin
-								writeLn("error: md5_for_file - no content for stdout captured");
+								writeLn("error: Md5ForFile - no content for stdout captured");
 							end;
 						end
 						else begin
-							writeLn("error: md5_for_file - non-zero exit code for md5 utility. value={0}", ExitCode);
+							writeLn("error: Md5ForFile - non-zero exit code for md5 utility. value={0}", ExitCode);
 						end;
 					end
 					else begin
-						writeLn("error: md5_for_file - unable to execute md5 sum utility '{0}'", Md5Exe);
+						writeLn("error: Md5ForFile - unable to execute md5 sum utility '{0}'", Md5Exe);
 					end;
 				end
 				else begin
-					writeLn("error: md5_for_file - no value present for '{0}'", KeyExe);
+					writeLn("error: Md5ForFile - no value present for '{0}'", KeyExe);
 				end;
 			end
 			else begin
-				writeLn("error: md5_for_file - unable to retrieve platform config values");
+				writeLn("error: Md5ForFile - unable to retrieve platform config values");
 			end;
 
 			result := '';
