@@ -36,7 +36,7 @@ type
     method PutObjectFromFile(ContainerName: String;
                              ObjectName: String;
                              FilePath: String;
-                             Headers: PropertySet): Boolean;
+                             Headers: PropertySet): Boolean; override;
     method DeleteObject(ContainerName: String; ObjectName: String): Boolean; override;
     method GetObject(ContainerName: String;
                      ObjectName: String;

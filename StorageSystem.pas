@@ -21,6 +21,10 @@ type
                      ObjectName: String;
                      FileContents: array of Byte;
                      Headers: PropertySet): Boolean; abstract;
+    method PutObjectFromFile(ContainerName: String;
+                             ObjectName: String;
+                             FilePath: String;
+                             Headers: PropertySet): Boolean; abstract;
     method DeleteObject(ContainerName: String; ObjectName: String): Boolean; abstract;
     method GetObject(ContainerName: String;
                      ObjectName: String;

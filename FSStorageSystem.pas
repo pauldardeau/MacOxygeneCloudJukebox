@@ -27,6 +27,10 @@ type
                      ObjectName: String;
                      FileContents: array of Byte;
                      Headers: PropertySet): Boolean; override;
+    method PutObjectFromFile(ContainerName: String;
+                             ObjectName: String;
+                             FilePath: String;
+                             Headers: PropertySet): Boolean; override;
     method DeleteObject(ContainerName: String; ObjectName: String): Boolean; override;
     method GetObject(ContainerName: String;
                      ObjectName: String;
@@ -214,6 +218,62 @@ begin
             writeLn("object content is empty, can't put object");
           end;
         end;
+      end;
+    end;
+  end;
+  result := ObjectAdded;
+end;
+
+//*******************************************************************************
+
+method FSStorageSystem.PutObjectFromFile(ContainerName: String;
+                                         ObjectName: String;
+                                         FilePath: String;
+                                         Headers: PropertySet): Boolean;
+var
+  ObjectAdded: Boolean;
+begin
+  ObjectAdded := false;
+
+  if (ContainerName.Length() > 0) and
+     (ObjectName.Length() > 0) and
+     (FilePath.Length() > 0) then begin
+
+    const ContainerDir = Utils.PathJoin(RootDir, ContainerName);
+    if Utils.DirectoryExists(ContainerDir) then begin
+      const ObjectPath = Utils.PathJoin(ContainerDir, ObjectName);
+      ObjectAdded := Utils.FileCopy(FilePath, ObjectPath);
+      if ObjectAdded then begin
+        if DebugMode then begin
+          writeLn("object added: {0}/{1}", ContainerName, ObjectName);
+        end;
+        if Headers <> nil then begin
+          if Headers.Count() > 0 then begin
+            const MetaPath = ObjectPath + MetadataFileSuffix;
+            Headers.WriteToFile(MetaPath);
+          end;
+        end;
+      end
+      else begin
+        writeLn("FileCopy failed to copy object contents, put failed");
+      end;
+    end
+    else begin
+      if DebugMode then begin
+        writeLn("container doesn't exist, can't put object");
+      end;
+    end;
+  end
+  else begin
+    if DebugMode then begin
+      if ContainerName.Length() = 0 then begin
+        writeLn("container name is missing, can't put object");
+      end;
+      if ObjectName.Length() = 0 then begin
+        writeLn("object name is missing, can't put object");
+      end;
+      if FilePath.Length() = 0 then begin
+        writeLn("object file path is empty, can't put object");
       end;
     end;
   end;
