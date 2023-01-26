@@ -41,7 +41,7 @@ type
     method HaveTables: Boolean;
     method GetPlaylist(PlaylistName: String): String;
     method SongsForQueryResults(Statement: ^libsqlite3.sqlite3_stmt): List<SongMetadata>;
-    method RetrieveSong(FileName: String): SongMetadata;
+    method RetrieveSong(SongUid: String): SongMetadata;
     method InsertPlaylist(PlUid: String; PlName: String; PlDesc: String): Boolean;
     method DeletePlaylist(PlName: String): Boolean;
     method InsertSong(Song: SongMetadata): Boolean;
@@ -57,7 +57,7 @@ type
     method ShowPlaylists;
     method DeleteSong(SongUid: String): Boolean;
     method MakeStringFromCString(CString: ^Byte): String;
-    method MakeCStringFromString(s: String): array  of Byte;
+    //method MakeCStringFromString(s: String): array  of Char;
   end;
 
 //*******************************************************************************
@@ -103,9 +103,10 @@ begin
   Close;
   OpenSuccess := false;
 
-  const rawMetadataDbFilePath = Encoding.ASCII.GetBytes(MetadataDbFilePath);
+  const rawMetadataDbFilePath = Encoding.UTF8.GetBytes(MetadataDbFilePath);
+  var pChar := @rawMetadataDbFilePath[0];
 
-  if libsqlite3.sqlite3_open(rawMetadataDbFilePath as ^AnsiChar, @DbConnection) <> libsqlite3.SQLITE_OK then begin
+  if libsqlite3.sqlite3_open(pChar as ^AnsiChar, @DbConnection) <> libsqlite3.SQLITE_OK then begin
     writeLn("error: unable to open SQLite db file '{0}'", MetadataDbFilePath);
   end
   else begin
@@ -184,9 +185,11 @@ var
 begin
   Statement := nil;
   if DbConnection <> nil then begin
-    const rawSqlStatement = MakeCStringFromString(SqlStatement) as ^AnsiChar;
+    //const rawSqlStatement = MakeCStringFromString(SqlStatement);
+    const rawSqlStatement = Encoding.UTF8.GetBytes(SqlStatement);
+    const pChar = @rawSqlStatement[0];
     var rc := libsqlite3.sqlite3_prepare_v2(DbConnection,
-                                            rawSqlStatement,
+                                            pChar as ^AnsiChar,
                                             -1,
                                             @Statement,
                                             nil);
@@ -324,8 +327,17 @@ begin
           rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 0);
       end
       else if arg.IsString() then begin
-        const rawArgument = MakeCStringFromString(arg.GetStringValue()) as ^AnsiChar;
-        rc := libsqlite3.sqlite3_bind_text(Stmt, argIndex, rawArgument, -1, nil)
+        /*
+        const SV = arg.GetStringValue();
+        //const rawArgument = MakeCStringFromString(SV);
+        const rawArgument = Encoding.UTF8.GetBytes(SV);
+        const pChar = @rawArgument[0];
+        rc := libsqlite3.sqlite3_bind_text(Stmt, argIndex, pChar as ^AnsiChar, -1, nil)
+        */
+        var SV: Foundation.NSString := arg.GetStringValue();
+        var data := new Char[SV.length + 1];
+        SV.getCharacters(@data[0]);
+        rc := libsqlite3.sqlite3_bind_text16(Stmt, argIndex, @data[0], -1, nil)
       end
       else if arg.IsDouble() then
         rc := libsqlite3.sqlite3_bind_double(Stmt, argIndex, arg.GetDoubleValue())
@@ -400,8 +412,10 @@ begin
           rc := libsqlite3.sqlite3_bind_int(Stmt, argIndex, 0);
       end
       else if arg.IsString() then begin
-        const rawArgument = MakeCStringFromString(arg.GetStringValue()) as ^AnsiChar;
-        rc := libsqlite3.sqlite3_bind_text(Stmt, argIndex, rawArgument, -1, nil)
+        //const rawArgument = MakeCStringFromString(arg.GetStringValue());
+        const rawArgument = Encoding.UTF8.GetBytes(arg.GetStringValue());
+        const pChar = @rawArgument[0];
+        rc := libsqlite3.sqlite3_bind_text(Stmt, argIndex, pChar as ^AnsiChar, -1, nil)
       end
       else if arg.IsDouble() then
         rc := libsqlite3.sqlite3_bind_double(Stmt, argIndex, arg.GetDoubleValue())
@@ -563,14 +577,14 @@ begin
     const createArtistTable = "CREATE TABLE artist (" +
                               "artist_uid TEXT UNIQUE NOT NULL," +
                               "artist_name TEXT UNIQUE NOT NULL," +
-                              "artist_description TEXT)";
+                              "artist_description TEXT);";
 
     const createAlbumTable = "CREATE TABLE album (" +
                              "album_uid TEXT UNIQUE NOT NULL," +
                              "album_name TEXT UNIQUE NOT NULL," +
                              "album_description TEXT," +
                              "artist_uid TEXT NOT NULL REFERENCES artist(artist_uid)," +
-                             "genre_uid TEXT REFERENCES genre(genre_uid))";
+                             "genre_uid TEXT REFERENCES genre(genre_uid));";
 
     const createSongTable = "CREATE TABLE song (" +
                             "song_uid TEXT UNIQUE NOT NULL," +
@@ -586,17 +600,17 @@ begin
                             "encrypted INTEGER," +
                             "container_name TEXT NOT NULL," +
                             "object_name TEXT NOT NULL," +
-                            "album_uid TEXT REFERENCES album(album_uid))";
+                            "album_uid TEXT REFERENCES album(album_uid));";
 
     const createPlaylistTable = "CREATE TABLE playlist (" +
                                 "playlist_uid TEXT UNIQUE NOT NULL," +
                                 "playlist_name TEXT UNIQUE NOT NULL," +
-                                "playlist_description TEXT)";
+                                "playlist_description TEXT);";
 
     const createPlaylistSongTable = "CREATE TABLE playlist_song (" +
                                     "playlist_song_uid TEXT UNIQUE NOT NULL," +
                                     "playlist_uid TEXT NOT NULL REFERENCES playlist(playlist_uid)," +
-                                    "song_uid TEXT NOT NULL REFERENCES song(song_uid))";
+                                    "song_uid TEXT NOT NULL REFERENCES song(song_uid));";
 
     DidSucceed := CreateTable(createGenreTable) and
                   CreateTable(createArtistTable) and
@@ -711,7 +725,7 @@ end;
 
 //*******************************************************************************
 
-method JukeboxDB.RetrieveSong(FileName: String): SongMetadata;
+method JukeboxDB.RetrieveSong(SongUid: String): SongMetadata;
 var
   Song: SongMetadata;
 begin
@@ -737,6 +751,7 @@ begin
                        "WHERE song_uid = ?";
       var Stmt := PrepareStatement(SqlQuery);
       if Stmt = nil then begin
+        writeLn("error: unable to prepare statement");
         result := nil;
         exit;
       end
@@ -746,7 +761,7 @@ begin
     end;
 
     var Args := new PropertyList;
-    Args.Append(new PropertyValue(FileName));
+    Args.Append(new PropertyValue(SongUid));
     if not BindStatementArguments(PsRetrieveSong, Args) then begin
       writeLn("error: unable to bind arguments");
       exit nil;
@@ -758,8 +773,8 @@ begin
         Song := SongResults[0];
       end;
     finally
-      libsqlite3.sqlite3_clear_bindings(PsRetrieveSong);
-      libsqlite3.sqlite3_reset(PsRetrieveSong);
+      const rc2 = libsqlite3.sqlite3_reset(PsRetrieveSong);
+      const rc1 = libsqlite3.sqlite3_clear_bindings(PsRetrieveSong);
     end;
   end;
   result := Song;
@@ -1311,16 +1326,21 @@ end;
 
 //*******************************************************************************
 
-method JukeboxDB.MakeCStringFromString(s: String): array  of Byte;
+/*
+method JukeboxDB.MakeCStringFromString(s: String): ^CharChar;
 begin
   if s = nil then begin
     result := nil;
   end
   else begin
-    result := s.ToByteArray();
+    //result := s.ToByteArray();
+    //result := Encoding.ASCII.GetBytes(s);
+    //result := Encoding.UTF8.GetBytes(s);
+    //result := s.ToCharArray;
+    result := Encoding.UTF16LE.GetBytes(s) as array  of Char;
   end;
 end;
-
+*/
 //*******************************************************************************
 
 end.
