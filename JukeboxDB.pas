@@ -15,8 +15,6 @@ type
 
   public
     constructor(aMetadataDbFilePath: String;
-                aUseEncryption: Boolean;
-                aUseCompression: Boolean;
                 aDebugPrint: Boolean);
     method IsOpen: Boolean;
     method Open: Boolean;
@@ -68,13 +66,9 @@ implementation
 //*******************************************************************************
 
 constructor JukeboxDB(aMetadataDbFilePath: String;
-                      aUseEncryption: Boolean;
-                      aUseCompression: Boolean;
                       aDebugPrint: Boolean);
 begin
   DebugPrint := aDebugPrint;
-  UseEncryption := aUseEncryption;
-  UseCompression := aUseCompression;
   DbConnection := nil;
   PsRetrieveSong := nil;
   InTransaction := false;

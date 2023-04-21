@@ -14,6 +14,69 @@ type
     Directory: String;
 
   public
+    //const MetadataFileSuffix = '.meta';
+    const argPrefix          = "--";
+    const argDebug           = "debug";
+    const argFileCacheCount  = "file-cache-count";
+    const argIntegrityChecks = "integrity-checks";
+    const argStorage         = "storage";
+    const argArtist          = "artist";
+    const argPlaylist        = "playlist";
+    const argSong            = "song";
+    const argAlbum           = "album";
+    const argCommand         = "command";
+    const argFormat          = "format";
+    const argDirectory       = "directory";
+
+    const cmdDeleteAlbum      = "delete-album";
+    const cmdDeleteArtist     = "delete-artist";
+    const cmdDeletePlaylist   = "delete-playlist";
+    const cmdDeleteSong       = "delete-song";
+    const cmdExportAlbum      = "export-album";
+    const cmdExportArtist     = "export-artist";
+    const cmdExportPlaylist   = "export-playlist";
+    const cmdHelp             = "help";
+    const cmdImportAlbum      = "import-album";
+    const cmdImportAlbumArt   = "import-album-art";
+    const cmdImportPlaylists  = "import-playlists";
+    const cmdImportSongs      = "import-songs";
+    const cmdInitStorage      = "init-storage";
+    const cmdListAlbums       = "list-albums";
+    const cmdListArtists      = "list-artists";
+    const cmdListContainers   = "list-containers";
+    const cmdListGenres       = "list-genres";
+    const cmdListPlaylists    = "list-playlists";
+    const cmdListSongs        = "list-songs";
+    const cmdPlay             = "play";
+    const cmdPlayAlbum        = "play-album";
+    const cmdPlayPlaylist     = "play-playlist";
+    const cmdRetrieveCatalog  = "retrieve-catalog";
+    const cmdShowAlbum        = "show-album";
+    const cmdShowPlaylist     = "show-playlist";
+    const cmdShufflePlay      = "shuffle-play";
+    const cmdUploadMetadataDb = "upload-metadata-db";
+    const cmdUsage            = "usage";
+
+    const ssFs = "fs";
+    const ssS3 = "s3";
+
+    const credsFileSuffix      = "_creds.txt";
+    const credsContainerPrefix = "container_prefix";
+
+    const awsAccessKey       = "aws_access_key";
+    const awsSecretKey       = "aws_secret_key";
+    const updateAwsAccessKey = "update_aws_access_key";
+    const updateAwsSecretKey = "update_aws_secret_key";
+    const endpointUrl        = "endpoint_url";
+    const region             = "region";
+
+    const fsRootDir = "root_dir";
+
+    const audioFileTypeMp3  = "mp3";
+    const audioFileTypeM4a  = "m4a";
+    const audioFileTypeFlac = "flac";
+
+
     constructor;
     method ConnectFsSystem(Credentials: PropertySet;
                            Prefix: String): StorageSystem;
@@ -22,7 +85,8 @@ type
     method ConnectStorageSystem(SystemName: String;
                                 Credentials: PropertySet;
                                 Prefix: String): StorageSystem;
-    method InitStorageSystem(StorageSys: StorageSystem): Boolean;
+    method InitStorageSystem(StorageSys: StorageSystem;
+                             ContainerPrefix: String): Boolean;
     method ShowUsage;
     method RunJukeboxCommand(jukebox: Jukebox; Command: String): Integer;
     method Run(ConsoleArgs: ImmutableList<String>): Int32;
@@ -46,15 +110,15 @@ end;
 method JukeboxMain.ConnectFsSystem(Credentials: PropertySet;
                                    Prefix: String): StorageSystem;
 begin
-  if Credentials.Contains("root_dir") then begin
-    const RootDir = Credentials.GetStringValue("root_dir");
+  if Credentials.Contains(fsRootDir) then begin
+    const RootDir = Credentials.GetStringValue(fsRootDir);
     if DebugMode then begin
-      writeLn("root_dir = '{0}'", RootDir);
+      writeLn("{0} = '{0}'", fsRootDir, RootDir);
     end;
     result := new FSStorageSystem(RootDir, DebugMode);
   end
   else begin
-    writeLn("error: 'root_dir' must be specified in fs_creds.txt");
+    writeLn("error: '{0}' must be specified in {1}{2}", fsRootDir, ssFs, credsFileSuffix);
     result := nil;
   end;
 end;
@@ -64,74 +128,77 @@ end;
 method JukeboxMain.ConnectS3System(Credentials: PropertySet;
                                    Prefix: String): StorageSystem;
 begin
-  var AwsAccessKey := "";
-  var AwsSecretKey := "";
-  var UpdateAwsAccessKey := "";
-  var UpdateAwsSecretKey := "";
-  var Protocol := "";
-  var Host := "";
+  var theAwsAccessKey := "";
+  var theAwsSecretKey := "";
+  var theUpdateAwsAccessKey := "";
+  var theUpdateAwsSecretKey := "";
+  var theEndpointUrl := "";
+  var theRegion := "";
 
-  if Credentials.Contains("aws_access_key") then begin
-    AwsAccessKey := Credentials.GetStringValue("aws_access_key");
+  if Credentials.Contains(awsAccessKey) then begin
+    theAwsAccessKey := Credentials.GetStringValue(awsAccessKey);
   end;
 
-  if Credentials.Contains("aws_secret_key") then begin
-    AwsSecretKey := Credentials.GetStringValue("aws_secret_key");
+  if Credentials.Contains(awsSecretKey) then begin
+    theAwsSecretKey := Credentials.GetStringValue(awsSecretKey);
   end;
 
-  if Credentials.Contains("protocol") then begin
-    Protocol := Credentials.GetStringValue("protocol");
+  if Credentials.Contains(endpointUrl) then begin
+    theEndpointUrl := Credentials.GetStringValue(endpointUrl);
   end;
 
-  if Credentials.Contains("host") then begin
-    Host := Credentials.GetStringValue("host");
+  if Credentials.Contains(region) then begin
+    theRegion := Credentials.GetStringValue(region);
   end;
 
-  if Credentials.Contains("update_aws_access_key") and
-     Credentials.Contains("update_aws_secret_key") then begin
+  if Credentials.Contains(updateAwsAccessKey) and
+     Credentials.Contains(updateAwsSecretKey) then begin
 
-    UpdateAwsAccessKey := Credentials.GetStringValue("update_aws_access_key");
-    UpdateAwsSecretKey := Credentials.GetStringValue("update_aws_secret_key");
+    theUpdateAwsAccessKey := Credentials.GetStringValue(updateAwsAccessKey);
+    theUpdateAwsSecretKey := Credentials.GetStringValue(updateAwsSecretKey);
   end;
 
   if DebugMode then begin
-    writeLn("aws_access_key={0}", AwsAccessKey);
-    writeLn("aws_secret_key={0}", AwsSecretKey);
-    if (UpdateAwsAccessKey.Length() > 0) and (UpdateAwsSecretKey.Length() > 0) then begin
-      writeLn("update_aws_access_key={0}", UpdateAwsAccessKey);
-      writeLn("update_aws_secret_key={0}", UpdateAwsSecretKey);
+    writeLn("{0}={1}", awsAccessKey, theAwsAccessKey);
+    writeLn("{0}={1}", awsSecretKey, theAwsSecretKey);
+    if (theUpdateAwsAccessKey.Length() > 0) and (theUpdateAwsSecretKey.Length() > 0) then begin
+      writeLn("{0}={1}", updateAwsAccessKey, theUpdateAwsAccessKey);
+      writeLn("{0}={1}", updateAwsSecretKey, theUpdateAwsSecretKey);
     end;
-    writeLn("host={0}", Host);
+    writeLn("endpoint_url={0}", theEndpointUrl);
+    if (theRegion.Length() > 0) then begin
+      writeLn("region={0}", theRegion);
+    end;
   end;
 
-  if (AwsAccessKey.Length() = 0) or (AwsSecretKey.Length() = 0) then begin
+  if (theAwsAccessKey.Length() = 0) or (theAwsSecretKey.Length() = 0) then begin
     writeLn("error: no s3 credentials given. please specify aws_access_key " +
             "and aws_secret_key in credentials file");
     exit nil;
   end
   else begin
-    if Host.Length() = 0 then begin
-      writeLn("error: no s3 host given. please specify host in credentials file");
-      exit nil;
-    end;
+    //if Host.Length() = 0 then begin
+    //  writeLn("error: no s3 host given. please specify host in credentials file");
+    //  exit nil;
+    //end;
 
     var AccessKey := "";
     var SecretKey := "";
 
     if UpdateMode then begin
-      AccessKey := UpdateAwsAccessKey;
-      SecretKey := UpdateAwsSecretKey;
+      AccessKey := theUpdateAwsAccessKey;
+      SecretKey := theUpdateAwsSecretKey;
     end
     else begin
-      AccessKey := AwsAccessKey;
-      SecretKey := AwsSecretKey;
+      AccessKey := theAwsAccessKey;
+      SecretKey := theAwsSecretKey;
     end;
 
     result := new S3ExtStorageSystem(AccessKey,
                                      SecretKey,
-                                     Protocol,
-                                     Host,
-                                     Prefix,
+                                     theEndpointUrl,
+                                     theRegion,
+                                     Directory,
                                      DebugMode);
   end;
 end;
@@ -142,10 +209,10 @@ method JukeboxMain.ConnectStorageSystem(SystemName: String;
                                         Credentials: PropertySet;
                                         Prefix: String): StorageSystem;
 begin
-  if SystemName = "fs" then begin
+  if SystemName = ssFs then begin
     result := ConnectFsSystem(Credentials, Prefix);
   end
-  else if (SystemName = "s3") or (SystemName= "s3ext") then begin
+  else if (SystemName = ssS3) or (SystemName= "s3ext") then begin
     result := ConnectS3System(Credentials, Prefix);
   end
   else begin
@@ -156,11 +223,14 @@ end;
 
 //*******************************************************************************
 
-method JukeboxMain.InitStorageSystem(StorageSys: StorageSystem): Boolean;
+method JukeboxMain.InitStorageSystem(StorageSys: StorageSystem;
+                                     ContainerPrefix: String): Boolean;
 var
   Success: Boolean;
 begin
-  if Jukebox.InitializeStorageSystem(StorageSys, DebugMode) then begin
+  if Jukebox.InitializeStorageSystem(StorageSys,
+                                     ContainerPrefix,
+                                     DebugMode) then begin
     writeLn("storage system successfully initialized");
     Success := true;
   end
@@ -176,32 +246,32 @@ end;
 method JukeboxMain.ShowUsage;
 begin
   writeLn("Supported Commands:");
-  writeLn("delete-album       - delete specified album");
-  writeLn("delete-artist      - delete specified artist");
-  writeLn("delete-playlist    - delete specified playlist");
-  writeLn("delete-song        - delete specified song");
-  writeLn("export-album       - FUTURE");
-  writeLn("export-artist      - FUTURE");
-  writeLn("export-playlist    - FUTURE");
-  writeLn("help               - show this help message");
-  writeLn("import-album-art   - import all album art from album-art-import subdirectory");
-  writeLn("import-playlists   - import all new playlists from playlist-import subdirectory");
-  writeLn("import-songs       - import all new songs from song-import subdirectory");
-  writeLn("init-storage       - initialize storage system");
-  writeLn("list-albums        - show listing of all available albums");
-  writeLn("list-artists       - show listing of all available artists");
-  writeLn("list-containers    - show listing of all available storage containers");
-  writeLn("list-genres        - show listing of all available genres");
-  writeLn("list-playlists     - show listing of all available playlists");
-  writeLn("list-songs         - show listing of all available songs");
-  writeLn("play               - start playing songs");
-  writeLn("play-playlist      - play specified playlist");
-  writeLn("show-album         - show songs in a specified album");
-  writeLn("show-playlist      - show songs in specified playlist");
-  writeLn("shuffle-play       - play songs randomly");
-  writeLn("retrieve-catalog   - retrieve copy of music catalog");
-  writeLn("upload-metadata-db - upload SQLite metadata");
-  writeLn("usage              - show this help message");
+  writeLn("{0}       - delete specified album", cmdDeleteAlbum);
+  writeLn("{0}      - delete specified artist", cmdDeleteArtist);
+  writeLn("{0}    - delete specified playlist", cmdDeletePlaylist);
+  writeLn("{0}        - delete specified song", cmdDeleteSong);
+  writeLn("{0}       - FUTURE", cmdExportAlbum);
+  writeLn("{0}      - FUTURE", cmdExportArtist);
+  writeLn("{0}    - FUTURE", cmdExportPlaylist);
+  writeLn("{0}               - show this help message", cmdHelp);
+  writeLn("{0}   - import all album art from album-art-import subdirectory", cmdImportAlbumArt);
+  writeLn("{0}   - import all new playlists from playlist-import subdirectory", cmdImportPlaylists);
+  writeLn("{0}       - import all new songs from song-import subdirectory", cmdImportSongs);
+  writeLn("{0}       - initialize storage system", cmdInitStorage);
+  writeLn("{0}        - show listing of all available albums", cmdListAlbums);
+  writeLn("{0}       - show listing of all available artists", cmdListArtists);
+  writeLn("{0}    - show listing of all available storage containers", cmdListContainers);
+  writeLn("{0}        - show listing of all available genres", cmdListGenres);
+  writeLn("{0}     - show listing of all available playlists", cmdListPlaylists);
+  writeLn("{0}         - show listing of all available songs", cmdListSongs);
+  writeLn("{0}               - start playing songs", cmdPlay);
+  writeLn("{0}      - play specified playlist", cmdPlayPlaylist);
+  writeLn("{0}         - show songs in a specified album", cmdShowAlbum);
+  writeLn("{0}      - show songs in specified playlist", cmdShowPlaylist);
+  writeLn("{0}       - play songs randomly", cmdShufflePlay);
+  writeLn("{0}   - retrieve copy of music catalog", cmdRetrieveCatalog);
+  writeLn("{0} - upload SQLite metadata", cmdUploadMetadataDb);
+  writeLn("{0}              - show this help message", cmdUsage);
   writeLn("");
 end;
 
@@ -215,73 +285,73 @@ begin
   ExitCode := 0;
   Shuffle := false;
 
-  if Command = "import-songs" then begin
+  if Command = cmdImportSongs then begin
     jukebox.ImportSongs();
   end
-  else if Command = "import-playlists" then begin
+  else if Command = cmdImportPlaylists then begin
     jukebox.ImportPlaylists();
   end
-  else if Command = "play" then begin
+  else if Command = cmdPlay then begin
     jukebox.PlaySongs(Shuffle, Artist, Album);
   end
-  else if Command = "shuffle-play" then begin
+  else if Command = cmdShufflePlay then begin
     Shuffle := true;
     jukebox.PlaySongs(Shuffle, Artist, Album);
   end
-  else if Command = "list-songs" then begin
+  else if Command = cmdListSongs then begin
     jukebox.ShowListings();
   end
-  else if Command = "list-artists" then begin
+  else if Command = cmdListArtists then begin
     jukebox.ShowArtists();
   end
-  else if Command = "list-containers" then begin
+  else if Command = cmdListContainers then begin
     jukebox.ShowListContainers();
   end
-  else if Command = "list-genres" then begin
+  else if Command = cmdListGenres then begin
     jukebox.ShowGenres();
   end
-  else if Command = "list-albums" then begin
+  else if Command = cmdListAlbums then begin
     jukebox.ShowAlbums();
   end
-  else if Command = "show-album" then begin
+  else if Command = cmdShowAlbum then begin
     if Artist.Length > 0 then begin
       if Album.Length > 0 then begin
         jukebox.ShowAlbum(Artist, Album);
       end
       else begin
-        writeLn("error: album must be specified using --album option");
+        writeLn("error: album must be specified using {0}{1} option", argPrefix, argAlbum);
         ExitCode := 1;
       end;
     end
     else begin
-      writeLn("error: artist must be specified using --artist option");
+      writeLn("error: artist must be specified using {0}{1} option", argPrefix, argArtist);
     end;
   end
-  else if Command = "list-playlists" then begin
+  else if Command = cmdListPlaylists then begin
     jukebox.ShowPlaylists();
   end
-  else if Command = "show-playlist" then begin
+  else if Command = cmdShowPlaylist then begin
     if Playlist.Length > 0 then begin
       jukebox.ShowPlaylist(Playlist);
     end
     else begin
-      writeLn("error: playlist must be specified using --playlist option");
+      writeLn("error: playlist must be specified using {0}{1} option", argPrefix, argPlaylist);
       ExitCode := 1;
     end;
   end
-  else if Command = "play-playlist" then begin
+  else if Command = cmdPlayPlaylist then begin
     if Playlist.Length > 0 then begin
       jukebox.PlayPlaylist(Playlist);
     end
     else begin
-      writeLn("error: playlist must be specified using --playlist option");
+      writeLn("error: playlist must be specified using {0}{1} option", argPrefix, argPlaylist);
       ExitCode := 1;
     end;
   end
-  else if Command = "retrieve-catalog" then begin
-    writeLn("retrieve-catalog not yet implemented");
+  else if Command = cmdRetrieveCatalog then begin
+    writeLn("{0} not yet implemented", cmdRetrieveCatalog);
   end
-  else if Command = "delete-song" then begin
+  else if Command = cmdDeleteSong then begin
     if Song.Length > 0 then begin
       if jukebox.DeleteSong(Song, true) then begin
         writeLn("song deleted");
@@ -292,11 +362,11 @@ begin
       end;
     end
     else begin
-      writeLn("error: song must be specified using --song option");
+      writeLn("error: song must be specified using {0}{1} option", argPrefix, argSong);
       ExitCode := 1;
     end
   end
-  else if Command = "delete-artist" then begin
+  else if Command = cmdDeleteArtist then begin
     if Artist.Length > 0 then begin
       if jukebox.DeleteArtist(Artist) then begin
         writeLn("artist deleted");
@@ -307,11 +377,11 @@ begin
       end
     end
     else begin
-      writeLn("error: artist must be specified using --artist option");
+      writeLn("error: artist must be specified using {0}{1} option", argPrefix, argArtist);
       ExitCode := 1;
     end;
   end
-  else if Command = "delete-album" then begin
+  else if Command = cmdDeleteAlbum then begin
     if Album.Length > 0 then begin
       if jukebox.DeleteAlbum(Album) then begin
         writeLn("album deleted");
@@ -322,11 +392,11 @@ begin
       end;
     end
     else begin
-      writeLn("error: album must be specified using --album option");
+      writeLn("error: album must be specified using {0}{1} option", argPrefix, argAlbum);
       ExitCode := 1;
     end;
   end
-  else if Command = "delete-playlist" then begin
+  else if Command = cmdDeletePlaylist then begin
     if Playlist.Length > 0 then begin
       if jukebox.DeletePlaylist(Playlist) then begin
         writeLn("playlist deleted");
@@ -337,11 +407,11 @@ begin
       end;
     end
     else begin
-      writeLn("error: playlist must be specified using --playlist option");
+      writeLn("error: playlist must be specified using {0}{1} option", argPrefix, argPlaylist);
       ExitCode := 1;
     end;
   end
-  else if Command = "upload-metadata-db" then begin
+  else if Command = cmdUploadMetadataDb then begin
     if jukebox.UploadMetadataDb() then begin
       writeLn("metadata db uploaded");
     end
@@ -350,7 +420,7 @@ begin
       ExitCode := 1;
     end;
   end
-  else if Command = "import-album-art" then begin
+  else if Command = cmdImportAlbumArt then begin
     jukebox.ImportAlbumArt();
   end;
 
@@ -371,27 +441,23 @@ var
   Creds: PropertySet;
 begin
   ExitCode := 0;
-  StorageType := "fs";
+  StorageType := ssFs;
   Artist := "";
   Album := "";
   Song := "";
   Playlist := "";
 
   var OptParser := new ArgumentParser;
-  OptParser.AddOptionalBoolFlag("--debug", "run in debug mode");
-  OptParser.AddOptionalIntArgument("--file-cache-count", "number of songs to buffer in cache");
-  OptParser.AddOptionalBoolFlag("--integrity-checks", "check file integrity after download");
-  OptParser.AddOptionalBoolFlag("--compress", "use gzip compression");
-  OptParser.AddOptionalBoolFlag("--encrypt", "encrypt file contents");
-  OptParser.AddOptionalStringArgument("--key", "encryption key");
-  OptParser.AddOptionalStringArgument("--keyfile", "path to file containing encryption key");
-  OptParser.AddOptionalStringArgument("--storage", "storage system type (s3, swift, azure)");
-  OptParser.AddOptionalStringArgument("--artist", "limit operations to specified artist");
-  OptParser.AddOptionalStringArgument("--playlist", "limit operations to specified playlist");
-  OptParser.AddOptionalStringArgument("--song", "limit operations to specified song");
-  OptParser.AddOptionalStringArgument("--album", "limit operations to specified album");
-  OptParser.AddOptionalStringArgument("--directory", "specify directory where audio player should run");
-  OptParser.AddRequiredArgument("command", "command for jukebox");
+  OptParser.AddOptionalBoolFlag(argPrefix+argDebug, "run in debug mode");
+  OptParser.AddOptionalIntArgument(argPrefix+argFileCacheCount, "number of songs to buffer in cache");
+  OptParser.AddOptionalBoolFlag(argPrefix+argIntegrityChecks, "check file integrity after download");
+  OptParser.AddOptionalStringArgument(argPrefix+argStorage, "storage system type (s3, fs)");
+  OptParser.AddOptionalStringArgument(argPrefix+argArtist, "limit operations to specified artist");
+  OptParser.AddOptionalStringArgument(argPrefix+argPlaylist, "limit operations to specified playlist");
+  OptParser.AddOptionalStringArgument(argPrefix+argSong, "limit operations to specified song");
+  OptParser.AddOptionalStringArgument(argPrefix+argAlbum, "limit operations to specified album");
+  OptParser.AddOptionalStringArgument(argPrefix+argDirectory, "specify directory where audio player should run");
+  OptParser.AddRequiredArgument(argCommand, "command for jukebox");
 
   var Args := OptParser.ParseArgs(ConsoleArgs);
   if Args = nil then begin
@@ -402,77 +468,31 @@ begin
 
   var Options := new JukeboxOptions;
 
-  if Args.Contains("debug") then begin
+  if Args.Contains(argDebug) then begin
     DebugMode := true;
     Options.DebugMode := true;
   end;
 
-  if Args.Contains("file_cache_count") then begin
-    const FileCacheCount = Args.GetIntValue("file_cache_count");
+  if Args.Contains(argFileCacheCount) then begin
+    const FileCacheCount = Args.GetIntValue(argFileCacheCount);
     if DebugMode then begin
       writeLn("setting file cache count={0}", FileCacheCount);
     end;
     Options.FileCacheCount := FileCacheCount;
   end;
 
-  if Args.Contains("integrity_checks") then begin
+  if Args.Contains(argIntegrityChecks) then begin
     if DebugMode then begin
       writeLn("setting integrity checks on");
     end;
     Options.CheckDataIntegrity := true;
   end;
 
-  if Args.Contains("compress") then begin
-    if DebugMode then begin
-      writeLn("setting compression on");
-    end;
-    Options.UseCompression := true;
-  end;
-
-  if Args.Contains("encrypt") then begin
-    if DebugMode then begin
-      writeLn("setting encryption on");
-    end;
-    Options.UseEncryption := true;
-  end;
-
-  if Args.Contains("key") then begin
-    const Key = Args.GetStringValue("key");
-    if DebugMode then begin
-      writeLn("setting encryption key={0}", Key);
-    end;
-    Options.EncryptionKey := Key;
-  end;
-
-  if Args.Contains("keyfile") then begin
-    const Keyfile = Args.GetStringValue("keyfile");
-    if DebugMode then begin
-      writeLn("reading encryption key file={0}", Keyfile);
-    end;
-
-    /*
-    string encryption_key;
-    if (Utils.FileReadAllText(keyfile, encryption_key) and
-       encryption_key.Length > 0) {
-
-      options.encryption_key = StrUtils::strip(encryption_key);
-    } else {
-      writeLn("error: unable to read key file {0}", keyfile);
-      Utils.ProgramExit(1);
-    }
-
-    if (options.encryption_key.length() = 0) {
-      writeLn("error: no key found in file {0}", keyfile);
-      Utils.ProgramExit(1);
-    }
-    */
-  end;
-
-  if Args.Contains("storage") then begin
-    const Storage = Args.GetStringValue("storage");
+  if Args.Contains(argStorage) then begin
+    const Storage = Args.GetStringValue(argStorage);
     SupportedSystems := new StringSet;
-    SupportedSystems.Add("fs");
-    SupportedSystems.Add("s3");
+    SupportedSystems.Add(ssFs);
+    SupportedSystems.Add(ssS3);
     if not SupportedSystems.Contains(Storage) then begin
       writeLn("error: invalid storage type {0}", Storage);
       //printf("supported systems are: %s\n", supported_systems.to_string());
@@ -487,35 +507,35 @@ begin
     end;
   end;
 
-  if Args.Contains("artist") then begin
-    Artist := Args.GetStringValue("artist");
+  if Args.Contains(argArtist) then begin
+    Artist := Args.GetStringValue(argArtist);
   end;
 
-  if Args.Contains("playlist") then begin
-    Playlist := Args.GetStringValue("playlist");
+  if Args.Contains(argPlaylist) then begin
+    Playlist := Args.GetStringValue(argPlaylist);
   end;
 
-  if Args.Contains("song") then begin
-    Song := Args.GetStringValue("song");
+  if Args.Contains(argSong) then begin
+    Song := Args.GetStringValue(argSong);
   end;
 
-  if Args.Contains("album") then begin
-    Album := Args.GetStringValue("album");
+  if Args.Contains(argAlbum) then begin
+    Album := Args.GetStringValue(argAlbum);
   end;
 
-  if Args.Contains("directory") then begin
-    Directory := Args.GetStringValue("directory");
+  if Args.Contains(argDirectory) then begin
+    Directory := Args.GetStringValue(argDirectory);
   end
   else begin
     Directory := Utils.GetCurrentDirectory();
   end;
 
-  if Args.Contains("command") then begin
+  if Args.Contains(argCommand) then begin
     if DebugMode then begin
       writeLn("using storage system type {0}", StorageType);
     end;
-    const ContainerPrefix = "com.swampbits.jukebox.";
-    const CredsFile = StorageType + "_creds.txt";
+    var ContainerPrefix := "";
+    const CredsFile = StorageType + credsFileSuffix;
     Creds := new PropertySet;
     const CredsFilePath = Utils.PathJoin(Directory, CredsFile);
 
@@ -526,7 +546,7 @@ begin
 
       const FileContents = Utils.FileReadAllText(CredsFilePath);
       if (FileContents <> nil) and (FileContents.Length > 0) then begin
-        const FileLines = FileContents.Split("\n");
+        const FileLines = FileContents.Split(Environment.LineBreak);
 
         for each FileLine in FileLines do begin
           const LineTokens = FileLine.Split("=");
@@ -535,6 +555,9 @@ begin
             const Value = LineTokens[1].Trim();
             if (Key.Length > 0) and (Value.Length > 0) then begin
               Creds.Add(Key, new PropertyValue(Value));
+              if Key = credsContainerPrefix then begin
+                ContainerPrefix := Value;
+              end;
             end;
           end;
         end;
@@ -549,47 +572,45 @@ begin
       writeLn("no creds file ({0})", CredsFilePath);
     end;
 
-    Options.EncryptionIv := "sw4mpb1ts.juk3b0x";
-
-    const Command = Args.GetStringValue("command");
+    const Command = Args.GetStringValue(argCommand);
     Args := nil;
 
     HelpCommands := new StringSet;
-    HelpCommands.Add("help");
-    HelpCommands.Add("usage");
+    HelpCommands.Add(cmdHelp);
+    HelpCommands.Add(cmdUsage);
 
     NonHelpCommands := new StringSet;
-    NonHelpCommands.Add("import-songs");
-    NonHelpCommands.Add("play");
-    NonHelpCommands.Add("shuffle-play");
-    NonHelpCommands.Add("list-songs");
-    NonHelpCommands.Add("list-artists");
-    NonHelpCommands.Add("list-containers");
-    NonHelpCommands.Add("list-genres");
-    NonHelpCommands.Add("list-albums");
-    NonHelpCommands.Add("retrieve-catalog");
-    NonHelpCommands.Add("import-playlists");
-    NonHelpCommands.Add("list-playlists");
-    NonHelpCommands.Add("show-album");
-    NonHelpCommands.Add("show-playlist");
-    NonHelpCommands.Add("play-playlist");
-    NonHelpCommands.Add("delete-song");
-    NonHelpCommands.Add("delete-album");
-    NonHelpCommands.Add("delete-playlist");
-    NonHelpCommands.Add("delete-artist");
-    NonHelpCommands.Add("upload-metadata-db");
-    NonHelpCommands.Add("import-album-art");
+    NonHelpCommands.Add(cmdImportSongs);
+    NonHelpCommands.Add(cmdPlay);
+    NonHelpCommands.Add(cmdShufflePlay);
+    NonHelpCommands.Add(cmdListSongs);
+    NonHelpCommands.Add(cmdListArtists);
+    NonHelpCommands.Add(cmdListContainers);
+    NonHelpCommands.Add(cmdListGenres);
+    NonHelpCommands.Add(cmdListAlbums);
+    NonHelpCommands.Add(cmdRetrieveCatalog);
+    NonHelpCommands.Add(cmdImportPlaylists);
+    NonHelpCommands.Add(cmdListPlaylists);
+    NonHelpCommands.Add(cmdShowAlbum);
+    NonHelpCommands.Add(cmdShowPlaylist);
+    NonHelpCommands.Add(cmdPlayPlaylist);
+    NonHelpCommands.Add(cmdDeleteSong);
+    NonHelpCommands.Add(cmdDeleteAlbum);
+    NonHelpCommands.Add(cmdDeletePlaylist);
+    NonHelpCommands.Add(cmdDeleteArtist);
+    NonHelpCommands.Add(cmdUploadMetadataDb);
+    NonHelpCommands.Add(cmdImportAlbumArt);
 
     UpdateCommands := new StringSet;
-    UpdateCommands.Add("import-songs");
-    UpdateCommands.Add("import-playlists");
-    UpdateCommands.Add("delete-song");
-    UpdateCommands.Add("delete-album");
-    UpdateCommands.Add("delete-playlist");
-    UpdateCommands.Add("delete-artist");
-    UpdateCommands.Add("upload-metadata-db");
-    UpdateCommands.Add("import-album-art");
-    UpdateCommands.Add("init-storage");
+    UpdateCommands.Add(cmdImportSongs);
+    UpdateCommands.Add(cmdImportPlaylists);
+    UpdateCommands.Add(cmdDeleteSong);
+    UpdateCommands.Add(cmdDeleteAlbum);
+    UpdateCommands.Add(cmdDeletePlaylist);
+    UpdateCommands.Add(cmdDeleteArtist);
+    UpdateCommands.Add(cmdUploadMetadataDb);
+    UpdateCommands.Add(cmdImportAlbumArt);
+    UpdateCommands.Add(cmdInitStorage);
 
     AllCommands := new StringSet;
     AllCommands.Append(HelpCommands);
@@ -610,7 +631,7 @@ begin
         //  Utils.ProgramExit(1);
         //end;
 
-        if Command = "upload-metadata-db" then begin
+        if Command = cmdUploadMetadataDb then begin
           Options.SuppressMetadataDownload := true;
         end
         else begin
@@ -639,8 +660,8 @@ begin
           exit;
         end;
 
-        if Command = "init-storage" then begin
-          if InitStorageSystem(StorageSystem) then begin
+        if Command = cmdInitStorage then begin
+          if InitStorageSystem(StorageSystem, ContainerPrefix) then begin
             result := 0
           end
           else begin
@@ -649,7 +670,10 @@ begin
           exit;
         end;
 
-        const jukebox = new Jukebox(Options, StorageSystem, DebugMode);
+        const jukebox = new Jukebox(Options,
+                                    StorageSystem,
+                                    ContainerPrefix,
+                                    DebugMode);
         if jukebox.Enter() then begin
           ExitCode := RunJukeboxCommand(jukebox, Command);
         end

@@ -179,6 +179,18 @@ type
 
 //*******************************************************************************
 
+		method DeleteFileIfExists(FilePath: String): Boolean;
+		begin
+			if FileExists(FilePath) then begin
+				exit DeleteFile(FilePath);
+			end
+			else begin
+				exit false;
+			end;
+		end;
+
+//*******************************************************************************
+
 		method RenameFile(OldPath: String; NewPath: String): Boolean;
 		begin
 			if FileExists(OldPath) then begin
@@ -242,8 +254,8 @@ type
 		method FileWriteAllText(FilePath: String; Contents: String): Boolean;
 		begin
 			try
-				RemObjects.Elements.RTL.File.WriteText(FilePath, Contents,
-																							 RemObjects.Elements.RTL.Encoding.UTF8);
+				const Encoding = RemObjects.Elements.RTL.Encoding.UTF8;
+				RemObjects.Elements.RTL.File.WriteText(FilePath, Contents, Encoding);
 				exit true;
 			except
 				exit false;
@@ -278,8 +290,8 @@ type
 
 		method FileReadTextLines(FilePath: String): ImmutableList<String>;
 		begin
-			exit RemObjects.Elements.RTL.File.ReadLines(FilePath,
-																									RemObjects.Elements.RTL.Encoding.UTF8);
+			const Encoding = RemObjects.Elements.RTL.Encoding.UTF8;
+			exit RemObjects.Elements.RTL.File.ReadLines(FilePath, Encoding);
 		end;
 
 //*******************************************************************************
@@ -383,12 +395,12 @@ type
 		begin
 			{$IFDEF MACOS}
 			//TODO: obtain PID on MacOS
-			exit 0;
+			exit Environment.ProcessID;
 			{$ELSE}
 				{$IFDEF ISLAND}
 				exit RemObjects.Elements.System.Process.CurrentProcessId();
 				{$ELSE}
-				exit 0;
+				exit Environment.ProcessID;
 				{$ENDIF}
 			{$ENDIF}
 		end;

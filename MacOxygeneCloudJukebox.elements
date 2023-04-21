@@ -10,6 +10,7 @@
     <MangleTypeNames>True</MangleTypeNames>
     <EntitlementsFile>Entitlements.entitlements</EntitlementsFile>
     <DefaultUses>RemObjects.Elements.RTL</DefaultUses>
+    <DeploymentTargetVersion>10.14</DeploymentTargetVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <Optimize>False</Optimize>

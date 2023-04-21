@@ -6,14 +6,9 @@ type
   JukeboxOptions = public class
   public
     DebugMode: Boolean;
-    UseEncryption: Boolean;
-    UseCompression: Boolean;
     CheckDataIntegrity: Boolean;
     FileCacheCount: Integer;
     NumberSongs: Integer;
-    EncryptionKey: String;
-    EncryptionKeyFile: String;
-    EncryptionIv: String;
     SuppressMetadataDownload: Boolean;
     Directory: String;
 
@@ -25,14 +20,9 @@ implementation
 constructor JukeboxOptions;
 begin
   DebugMode := false;
-  UseEncryption := false;
-  UseCompression := false;
   CheckDataIntegrity := false;
   FileCacheCount := 3;
   NumberSongs := 0;
-  EncryptionKey := "";
-  EncryptionKeyFile := "";
-  EncryptionIv := "";
   SuppressMetadataDownload := false;
   Directory := "";
 end;

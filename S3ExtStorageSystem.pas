@@ -7,15 +7,30 @@ type
     DebugMode: Boolean;
     AwsAccessKey: String;
     AwsSecretKey: String;
-    S3Host: String;
+    EndpointUrl: String;
+    Region: String;
+    Directory: String;
+    ScriptDirectory: String;
     ListContainers: List<String>;
 
   public
+    const runScriptNamePrefix = "exec-";
+    const scrTemplateListContainers = "s3-list-containers.sh";
+    const scrTemplateCreateContainer = "s3-create-container.sh";
+    const scrTemplateDeleteContainer = "s3-delete-container.sh";
+    const scrTemplateListContainerContents = "s3-list-container-contents.sh";
+    const scrTemplateHeadObject = "s3-head-object.sh";
+    const scrTemplatePutObjectWithProperties = "s3-put-object-props.sh";
+    const scrTemplatePutObject = "s3-put-object.sh";
+    const scrTemplateDeleteObject = "s3-delete-object.sh";
+    const scrTemplateGetObject = "s3-get-object.sh";
+
+
     constructor(AccessKey: String;
                 SecretKey: String;
-                Protocol: String;
-                Host: String;
-                ContainerPrefix: String;
+                aEndpointUrl: String;
+                aRegion: String;
+                aDirectory: String;
                 aDebugMode: Boolean);
 
     method Enter(): Boolean; override;
@@ -37,7 +52,8 @@ type
                              ObjectName: String;
                              FilePath: String;
                              Headers: PropertySet): Boolean; override;
-    method DeleteObject(ContainerName: String; ObjectName: String): Boolean; override;
+    method DeleteObject(ContainerName: String;
+                        ObjectName: String): Boolean; override;
     method GetObject(ContainerName: String;
                      ObjectName: String;
                      LocalFilePath: String): Int64; override;
@@ -46,10 +62,13 @@ type
     method PopulateCommonVariables(Kvp: KeyValuePairs);
     method PopulateBucket(Kvp: KeyValuePairs; BucketName: String);
     method PopulateObject(Kvp: KeyValuePairs; ObjectName: String);
-    method RunProgram(ProgramPath: String; ListOutputLines: List<String>): Boolean;
+    method RunProgram(ProgramPath: String;
+                      ListOutputLines: List<String>): Boolean;
     method RunProgram(ProgramPath: String): Boolean;
     method RunProgram(ProgramPath: String; out StdOut: String): Boolean;
-    method PrepareRunScript(ScriptTemplate: String; Kvp: KeyValuePairs): Boolean;
+    method PrepareRunScript(ScriptTemplate: String;
+                            RunScript: String;
+                            Kvp: KeyValuePairs): Boolean;
     method RunScriptNameForTemplate(ScriptTemplate: String): String;
 
   end;
@@ -60,15 +79,18 @@ implementation
 
 constructor S3ExtStorageSystem(AccessKey: String;
                                SecretKey: String;
-                               Protocol: String;
-                               Host: String;
-                               ContainerPrefix: String;
+                               aEndpointUrl: String;
+                               aRegion: String;
+                               aDirectory: String;
                                aDebugMode: Boolean);
 begin
   DebugMode := aDebugMode;
   AwsAccessKey := AccessKey;
   AwsSecretKey := SecretKey;
-  S3Host := Host;
+  EndpointUrl := aEndpointUrl;
+  Region := aRegion;
+  Directory := aDirectory;
+  ScriptDirectory := Utils.PathJoin(Directory, "scripts");
   ListContainers := new List<String>;
 end;
 
@@ -77,7 +99,7 @@ end;
 method S3ExtStorageSystem.Enter(): Boolean;
 begin
   if DebugMode then begin
-     writeLn("S3ExtStorageSystem.enter");
+     writeLn("S3ExtStorageSystem.Enter");
   end;
 
   ListContainers := ListAccountContainers();
@@ -96,29 +118,33 @@ end;
 //*******************************************************************************
 
 method S3ExtStorageSystem.ListAccountContainers: List<String>;
+const methodName = "S3ExtStorageSystem.ListAccountContainers";
 begin
   if DebugMode then begin
-    writeLn("ListAccountContainers");
+    writeLn("entering {0}", methodName);
   end;
 
   var ListOfContainers := new List<String>;
   var Kvp := new KeyValuePairs;
   PopulateCommonVariables(Kvp);
 
-  const ScriptTemplate = "s3-list-containers.sh";
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const ScriptTemplate = scrTemplateListContainers;
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-    if not RunProgram(RunScript, ListOfContainers) then begin
-      ListOfContainers.RemoveAll();
-      writeLn("S3ExtStorageSystem.ListAccountContainers - error: unable to run script");
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if not RunProgram(RunScript, ListOfContainers) then begin
+        ListOfContainers.RemoveAll();
+        writeLn("{0} - error: unable to run script", methodName);
+      end;
+    end
+    else begin
+      writeLn("{0} - error: unable to prepare script", methodName);
     end;
-  end
-  else begin
-    writeLn("S3ExtStorageSystem.ListAccountContainers - error: unable to prepare script");
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
-
-  Utils.DeleteFile(RunScript);
 
   result := ListOfContainers;
 end;
@@ -140,9 +166,10 @@ end;
 //*******************************************************************************
 
 method S3ExtStorageSystem.CreateContainer(ContainerName: String): Boolean;
+const methodName = "S3ExtStorageSystem.CreateContainer";
 begin
   if DebugMode then begin
-    writeLn("CreateContainer: {0}", ContainerName);
+    writeLn("entering {0} with ContainerName='{1}'", methodName, ContainerName);
   end;
 
   var ContainerCreated := false;
@@ -151,22 +178,26 @@ begin
   PopulateCommonVariables(Kvp);
   PopulateBucket(Kvp, ContainerName);
 
-  const ScriptTemplate = "s3-create-container.sh";
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const ScriptTemplate = scrTemplateCreateContainer;
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-    if RunProgram(RunScript) then begin
-      ContainerCreated := true;
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if RunProgram(RunScript) then begin
+        ContainerCreated := true;
+      end
+      else begin
+        writeLn("{0} - error: create container '{1}' failed",
+                methodName, ContainerName);
+      end;
     end
     else begin
-      writeLn("S3ExtStorageSystem.CreateContainer - error: create container '%s' failed", ContainerName);
+      writeLn("{0} - error: unable to prepare run script", methodName);
     end;
-  end
-  else begin
-    writeLn("S3ExtStorageSystem.CreateContainer - error: unable to prepare run script");
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
-
-  Utils.DeleteFile(RunScript);
 
   result := ContainerCreated;
 end;
@@ -185,16 +216,19 @@ begin
   PopulateCommonVariables(Kvp);
   PopulateBucket(Kvp, ContainerName);
 
-  const ScriptTemplate = "s3-delete-container.sh";
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const ScriptTemplate = scrTemplateDeleteContainer;
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-    if RunProgram(RunScript) then begin
-      ContainerDeleted := true;
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if RunProgram(RunScript) then begin
+        ContainerDeleted := true;
+      end;
     end;
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
-
-  Utils.DeleteFile(RunScript);
 
   result := ContainerDeleted;
 end;
@@ -202,9 +236,10 @@ end;
 //*******************************************************************************
 
 method S3ExtStorageSystem.ListContainerContents(ContainerName: String): ImmutableList<String>;
+const methodName = "S3ExtStorageSystem.ListContainerContents";
 begin
   if DebugMode then begin
-    writeLn("ListContainerContents: {0}", ContainerName);
+    writeLn("entering {0} with ContainerName='{1}'", methodName, ContainerName);
   end;
 
   var ListObjects := new List<String>;
@@ -213,20 +248,23 @@ begin
   PopulateCommonVariables(Kvp);
   PopulateBucket(Kvp, ContainerName);
 
-  const ScriptTemplate = "s3-list-container-contents.sh";
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const ScriptTemplate = scrTemplateListContainerContents;
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-    if not RunProgram(RunScript, ListObjects) then begin
-      ListObjects.RemoveAll();
-      writeLn("S3ExtStorageSystem.ListContainerContents - error: unable to run program");
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if not RunProgram(RunScript, ListObjects) then begin
+        ListObjects.RemoveAll();
+        writeLn("{0} - error: unable to run program", methodName);
+      end;
+    end
+    else begin
+      writeLn("{0} - error: unable to prepare run script", methodName);
     end;
-  end
-  else begin
-    writeLn("S3ExtStorageSystem.ListContainerContents - error: unable to prepare run script");
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
-
-  Utils.DeleteFile(RunScript);
 
   result := ListObjects;
 end;
@@ -251,17 +289,20 @@ begin
   PopulateBucket(Kvp, ContainerName);
   PopulateObject(Kvp, ObjectName);
 
-  const ScriptTemplate = "s3-head-object.sh";
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const ScriptTemplate = scrTemplateHeadObject;
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-     if RunProgram(RunScript, out StdOut) then begin
-       writeLn("{0}", StdOut);
-       Success := true;
-     end;
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if RunProgram(RunScript, out StdOut) then begin
+        writeLn("{0}", StdOut);
+        Success := true;
+      end;
+    end;
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
-
-  Utils.DeleteFile(RunScript);
 
   result := Success;
 end;
@@ -314,39 +355,6 @@ begin
   end;
 
   var ObjectAdded := false;
-
-  /*
-  put                  : Puts an object
-    <bucket>/<key>     : Bucket/key to put object to
-    [filename]         : Filename to read source data from (default is stdin)
-    [contentLength]    : How many bytes of source data to put (required if
-                         source file is stdin)
-    [cacheControl]     : Cache-Control HTTP header string to associate with
-                         object
-    [contentType]      : Content-Type HTTP header string to associate with
-                         object
-    [md5]              : MD5 for validating source data
-    [contentDispositionFilename] : Content-Disposition filename string to
-                         associate with object
-    [contentEncoding]  : Content-Encoding HTTP header string to associate
-                         with object
-    [expires]          : Expiration date to associate with object
-    [cannedAcl]        : Canned ACL for the object (see Canned ACLs)
-    [x-amz-meta-...]]  : Metadata headers to associate with the object
-  */
-
-  // each metadata property (aside from predefined ones) gets "x-amz-meta-" prefix
-
-  // predefined properties:
-  //   contentLength
-  //   cacheControl
-  //   contentType
-  //   md5
-  //   contentDispositionFilename
-  //   contentEncoding
-  //   expires
-  //   cannedAcl
-
   var sbMetadataProps := new StringBuilder;
 
   if Headers <> nil then begin
@@ -403,22 +411,25 @@ begin
   MetadataProps := MetadataProps.Trim();
 
   if MetadataProps.Length() > 0 then begin
-    ScriptTemplate := "s3-put-object-props.sh";
+    ScriptTemplate := scrTemplatePutObjectWithProperties;
     Kvp.AddPair("%%METADATA_PROPERTIES%%", MetadataProps);
   end
   else begin
-    ScriptTemplate := "s3-put-object.sh";
+    ScriptTemplate := scrTemplatePutObject;
   end;
 
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-    if RunProgram(RunScript) then begin
-      ObjectAdded := true;
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if RunProgram(RunScript) then begin
+        ObjectAdded := true;
+      end;
     end;
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
-
-  Utils.DeleteFile(RunScript);
 
   result := ObjectAdded;
 end;
@@ -440,16 +451,19 @@ begin
   PopulateBucket(Kvp, ContainerName);
   PopulateObject(Kvp, ObjectName);
 
-  const ScriptTemplate = "s3-delete-object.sh";
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const ScriptTemplate = scrTemplateDeleteObject;
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-    if RunProgram(RunScript) then begin
-      ObjectDeleted := true;
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if RunProgram(RunScript) then begin
+        ObjectDeleted := true;
+      end;
     end;
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
-
-  Utils.DeleteFile(RunScript);
 
   result := ObjectDeleted;
 end;
@@ -461,7 +475,7 @@ method S3ExtStorageSystem.GetObject(ContainerName: String;
                                     LocalFilePath: String): Int64;
 begin
   if DebugMode then begin
-    writeLn("GetObject: Container={0}, Object={1}, LocalFilePath={3}",
+    writeLn("GetObject: Container={0}, Object={1}, LocalFilePath={2}",
              ContainerName, ObjectName,
              LocalFilePath);
   end;
@@ -479,18 +493,21 @@ begin
   PopulateObject(Kvp, ObjectName);
   Kvp.AddPair("%%OUTPUT_FILE%%", LocalFilePath);
 
-  const ScriptTemplate = "s3-get-object.sh";
-  const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+  const ScriptTemplate = scrTemplateGetObject;
+  const RunScript = Utils.PathJoin(ScriptDirectory,
+                                   RunScriptNameForTemplate(ScriptTemplate));
 
-  if PrepareRunScript(ScriptTemplate, Kvp) then begin
-    if RunProgram(RunScript) then begin
-      Success := true;
+  try
+    if PrepareRunScript(ScriptTemplate, RunScript, Kvp) then begin
+      if RunProgram(RunScript) then begin
+        Success := true;
+      end;
     end;
+  finally
+    Utils.DeleteFileIfExists(RunScript);
   end;
 
-  Utils.DeleteFile(RunScript);
-
-  if Success then begin
+  if Success and Utils.FileExists(LocalFilePath) then begin
     result := Utils.GetFileSize(LocalFilePath);
   end
   else begin
@@ -502,9 +519,8 @@ end;
 
 method S3ExtStorageSystem.PopulateCommonVariables(Kvp: KeyValuePairs);
 begin
-  Kvp.AddPair("%%S3_ACCESS_KEY%%", AwsAccessKey);
-  Kvp.AddPair("%%S3_SECRET_KEY%%", AwsSecretKey);
-  Kvp.AddPair("%%S3_HOST%%", S3Host);
+  Kvp.AddPair("%%S3_ENDPOINT_URL%%", EndpointUrl);
+  Kvp.AddPair("%%S3_REGION%%", Region);
 end;
 
 //*****************************************************************************
@@ -578,7 +594,7 @@ begin
 
     if ExitCode = 0 then begin
       if StdOut.Length() > 0 then begin
-        const OutputLines = StdOut.Split("\n", true);
+        const OutputLines = StdOut.Split(Environment.LineBreak, true);
         for each line in OutputLines do begin
           if line.Length() > 0 then begin
             ListOutputLines.Add(line);
@@ -703,17 +719,18 @@ end;
 //*****************************************************************************
 
 method S3ExtStorageSystem.PrepareRunScript(ScriptTemplate: String;
+                                           RunScript: String;
                                            Kvp: KeyValuePairs): Boolean;
 begin
-   const RunScript = RunScriptNameForTemplate(ScriptTemplate);
+   Utils.DeleteFileIfExists(RunScript);
 
-   if not Utils.FileCopy(ScriptTemplate, RunScript) then begin
+   if not Utils.FileCopy(Utils.PathJoin(ScriptDirectory, ScriptTemplate), RunScript) then begin
       exit false;
    end;
 
-   if not Utils.FileSetPermissions(RunScript, 7, 0, 0) then begin
-      exit false;
-   end;
+   //if not Utils.FileSetPermissions(RunScript, 7, 0, 0) then begin
+   //   exit false;
+   //end;
 
    var FileText := Utils.FileReadAllText(RunScript);
    if FileText.Length = 0 then begin
@@ -737,7 +754,7 @@ end;
 
 method S3ExtStorageSystem.RunScriptNameForTemplate(ScriptTemplate: String): String;
 begin
-   result := "exec-" + ScriptTemplate;
+  result := runScriptNamePrefix + ScriptTemplate;
 end;
 
 //*****************************************************************************

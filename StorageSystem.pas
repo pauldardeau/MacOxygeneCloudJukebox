@@ -25,7 +25,8 @@ type
                              ObjectName: String;
                              FilePath: String;
                              Headers: PropertySet): Boolean; abstract;
-    method DeleteObject(ContainerName: String; ObjectName: String): Boolean; abstract;
+    method DeleteObject(ContainerName: String;
+                        ObjectName: String): Boolean; abstract;
     method GetObject(ContainerName: String;
                      ObjectName: String;
                      LocalFilePath: String): Int64; abstract;

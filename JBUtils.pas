@@ -4,10 +4,11 @@ type
   JBUtils = public static class
 
   public
+    const DoubleDashes = "--";
 
 //*******************************************************************************
 
-    method UnencodeValue(EncodedValue: String): String;
+    method DecodeValue(EncodedValue: String): String;
     begin
       result := EncodedValue.Replace('-', ' ');
     end;
@@ -17,6 +18,39 @@ type
     method EncodeValue(Value: String): String;
     begin
       result := Value.Replace(' ', '-');
+    end;
+
+//*******************************************************************************
+
+    method EncodeArtistAlbum(artist: String; album: String): String;
+    begin
+      result := EncodeValue(artist) + DoubleDashes + EncodeValue(album);
+    end;
+
+//*******************************************************************************
+
+    method EncodeArtistAlbumSong(artist: String; album: String; song: String): String;
+    begin
+      result := EncodeArtistAlbum(artist, album) + DoubleDashes + EncodeValue(song);
+    end;
+
+//*******************************************************************************
+
+    method RemovePunctuation(s: String): String;
+    begin
+      if s.Contains("'") then begin
+        s := s.Replace("'", "");
+      end;
+
+      if s.Contains("!") then begin
+        s := s.Replace("!", "");
+      end;
+
+      if s.Contains("?") then begin
+        s := s.Replace("?", "");
+      end;
+
+      result := s;
     end;
 
 //*******************************************************************************

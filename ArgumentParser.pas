@@ -149,6 +149,7 @@ begin
         end
         else begin
           // missing int value
+          writeLn("ArgumentParser: missing int value for key={0}", Arg);
         end;
       end
       else if ArgType = TypeString then begin
@@ -162,15 +163,18 @@ begin
         end
         else begin
           // missing string value
+          writeLn("ArgumentParser: missing string value for key={0}", Arg);
         end;
       end
       else begin
         // unrecognized type
+        writeLn("ArgumentParser: unrecognized data type for key={0}", Arg);
       end;
     end
     else begin
       if Arg.StartsWith("--") then begin
         // unrecognized option
+        writeLn("ArgumentParser: unrecognized option {0}", Arg);
       end
       else begin
         if CommandsFound < ListCommands.Count then begin
@@ -183,6 +187,7 @@ begin
         end
         else begin
           // unrecognized command
+          writeLn("ArgumentParser: unrecognized command {0}", Arg);
         end;
       end;
     end;
