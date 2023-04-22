@@ -1,7 +1,5 @@
 #!/bin/sh
-export S3_ACCESS_KEY_ID="%%S3_ACCESS_KEY%%"
-export S3_SECRET_ACCESS_KEY="%%S3_SECRET_KEY%%"
-export S3_HOSTNAME="%%S3_HOST%%"
 export BUCKET_NAME="%%BUCKET_NAME%%"
 export OBJECT_NAME="%%OBJECT_NAME%%"
-s3 put $BUCKET_NAME/$OBJECT_NAME filename="%%INPUT_FILE%%"
+export S3_ENDPOINT_URL="%%S3_ENDPOINT_URL%%"
+aws s3 cp --endpoint-url=$S3_ENDPOINT_URL %%INPUT_FILE%% s3://$BUCKET_NAME/$OBJECT_NAME

@@ -1,7 +1,6 @@
 #!/bin/sh
-export S3_ACCESS_KEY_ID="%%S3_ACCESS_KEY%%"
-export S3_SECRET_ACCESS_KEY="%%S3_SECRET_KEY%%"
-export S3_HOSTNAME="%%S3_HOST%%"
 export BUCKET_NAME="%%BUCKET_NAME%%"
 export OBJECT_NAME="%%OBJECT_NAME%%"
+export S3_ENDPOINT_URL="%%S3_ENDPOINT_URL%%"
+#See: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/put-object.html
 s3 put $BUCKET_NAME/$OBJECT_NAME filename="%%INPUT_FILE%%" %%METADATA_PROPERTIES%%
