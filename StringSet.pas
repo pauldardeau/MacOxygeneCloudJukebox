@@ -16,6 +16,7 @@ type
     method GetValues(): ImmutableList<String>;
     method Count():Integer;
     method Append(aSet: StringSet);
+    method ToString(): String;
   end;
 
 //*******************************************************************************
@@ -71,6 +72,19 @@ method StringSet.Append(aSet: StringSet);
 begin
   for each Value in aSet.GetValues() do begin
     MapStrings.Add(Value, true);
+  end;
+end;
+
+//*******************************************************************************
+
+method StringSet.ToString(): String;
+begin
+  var s := "";
+  for each Value in MapStrings.Keys do begin
+    if s.Length() > 0 then begin
+      s := s + ", ";
+    end;
+    s := s + Value;
   end;
 end;
 

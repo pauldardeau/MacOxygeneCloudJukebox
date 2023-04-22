@@ -495,7 +495,7 @@ begin
     SupportedSystems.Add(ssS3);
     if not SupportedSystems.Contains(Storage) then begin
       writeLn("error: invalid storage type {0}", Storage);
-      //printf("supported systems are: %s\n", supported_systems.to_string());
+      writeLn("supported systems are: {0}", SupportedSystems.ToString());
       result := 1;
       exit;
     end

@@ -304,7 +304,7 @@ type
 			end;
 
 			if not FileExists(PathToFile) then begin
-				writeLn("error (Md5ForFile): file does not exist '%s'", PathToFile);
+				writeLn("error (Md5ForFile): file does not exist '{0}'", PathToFile);
 				exit "";
 			end;
 

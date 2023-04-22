@@ -49,15 +49,17 @@
 	<key>NavigationPaneActiveTab</key>
 	<integer>0</integer>
 	<key>SelectedNode</key>
-	<string>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/S3ExtStorageSystem.pas</string>
+	<string>buildmessage://3:83:32-file:///Users/paul/github/MacOxygeneCloudJukebox/StringSet.pas</string>
+	<key>SelectedPrimaryNode</key>
+	<string>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/StringSet.pas</string>
 	<key>ViewMetaData</key>
 	<dict>
 		<key>/Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.sln---BuildLog</key>
 		<dict>
 			<key>CursorX</key>
-			<integer>43</integer>
+			<integer>40</integer>
 			<key>CursorY</key>
-			<integer>7</integer>
+			<integer>14</integer>
 			<key>ScrollX</key>
 			<real>0.0</real>
 			<key>ScrollY</key>
@@ -67,15 +69,15 @@
 			<key>SelectionCursorUndecided</key>
 			<true/>
 			<key>SelectionEndColumn</key>
-			<integer>82</integer>
+			<integer>133</integer>
 			<key>SelectionEndLine</key>
-			<integer>7</integer>
+			<integer>14</integer>
 			<key>SelectionIsLinear</key>
 			<true/>
 			<key>SelectionStartColumn</key>
 			<integer>0</integer>
 			<key>SelectionStartLine</key>
-			<integer>7</integer>
+			<integer>14</integer>
 		</dict>
 		<key>buildmessage://0:1539:9-file:///Users/paul/github/MacOxygeneCloudJukebox/Jukebox.pas</key>
 		<dict>
@@ -747,25 +749,25 @@
 		<key>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/Jukebox.pas</key>
 		<dict>
 			<key>CursorX</key>
-			<integer>0</integer>
+			<integer>16</integer>
 			<key>CursorY</key>
-			<integer>544</integer>
+			<integer>533</integer>
 			<key>ScrollX</key>
 			<real>0.0</real>
 			<key>ScrollY</key>
-			<real>12140</real>
+			<real>11714</real>
 			<key>SelectionCursorUndecided</key>
 			<false/>
 			<key>SelectionEndColumn</key>
-			<integer>-1</integer>
+			<integer>16</integer>
 			<key>SelectionEndLine</key>
-			<integer>-1</integer>
+			<integer>533</integer>
 			<key>SelectionIsLinear</key>
 			<true/>
 			<key>SelectionStartColumn</key>
-			<integer>-1</integer>
+			<integer>14</integer>
 			<key>SelectionStartLine</key>
-			<integer>-1</integer>
+			<integer>533</integer>
 		</dict>
 		<key>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/JukeboxDB.pas</key>
 		<dict>
@@ -793,13 +795,13 @@
 		<key>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/JukeboxMain.pas</key>
 		<dict>
 			<key>CursorX</key>
-			<integer>0</integer>
+			<integer>6</integer>
 			<key>CursorY</key>
-			<integer>200</integer>
+			<integer>497</integer>
 			<key>ScrollX</key>
 			<real>0.0</real>
 			<key>ScrollY</key>
-			<real>4024.5</real>
+			<real>10984</real>
 			<key>SelectionCursorUndecided</key>
 			<false/>
 			<key>SelectionEndColumn</key>
@@ -960,7 +962,7 @@
 			<key>ScrollX</key>
 			<real>0.0</real>
 			<key>ScrollY</key>
-			<real>11416.5</real>
+			<real>11141</real>
 			<key>SelectionCursorUndecided</key>
 			<false/>
 			<key>SelectionEndColumn</key>
@@ -1046,13 +1048,13 @@
 		<key>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/StringSet.pas</key>
 		<dict>
 			<key>CursorX</key>
-			<integer>0</integer>
+			<integer>35</integer>
 			<key>CursorY</key>
-			<integer>3</integer>
+			<integer>82</integer>
 			<key>ScrollX</key>
 			<real>0.0</real>
 			<key>ScrollY</key>
-			<real>582.5</real>
+			<real>1443</real>
 			<key>SelectionCursorUndecided</key>
 			<false/>
 			<key>SelectionEndColumn</key>
@@ -1069,23 +1071,23 @@
 		<key>file:///Users/paul/github/MacOxygeneCloudJukebox/MacOxygeneCloudJukebox.elements_file:///Users/paul/github/MacOxygeneCloudJukebox/Utils.pas</key>
 		<dict>
 			<key>CursorX</key>
-			<integer>77</integer>
+			<integer>61</integer>
 			<key>CursorY</key>
-			<integer>257</integer>
+			<integer>306</integer>
 			<key>ScrollX</key>
 			<real>0.0</real>
 			<key>ScrollY</key>
-			<real>4409.5</real>
+			<real>6702.5</real>
 			<key>SelectionCursorUndecided</key>
 			<false/>
 			<key>SelectionEndColumn</key>
-			<integer>0</integer>
+			<integer>-1</integer>
 			<key>SelectionEndLine</key>
-			<integer>0</integer>
+			<integer>-1</integer>
 			<key>SelectionIsLinear</key>
 			<true/>
 			<key>SelectionStartColumn</key>
-			<integer>0</integer>
+			<integer>-1</integer>
 			<key>SelectionStartLine</key>
 			<integer>-1</integer>
 		</dict>
