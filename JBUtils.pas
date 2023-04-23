@@ -17,7 +17,8 @@ type
 
     method EncodeValue(Value: String): String;
     begin
-      result := Value.Replace(' ', '-');
+      const ValueWithoutPunctuation = RemovePunctuation(Value);
+      result := ValueWithoutPunctuation.Replace(' ', '-');
     end;
 
 //*******************************************************************************
