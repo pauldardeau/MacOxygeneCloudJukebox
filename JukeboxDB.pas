@@ -6,8 +6,6 @@ type
   JukeboxDB = public class
   private
     DebugPrint: Boolean;
-    UseEncryption: Boolean;
-    UseCompression: Boolean;
     DbConnection: ^libsqlite3.sqlite3;
     MetadataDbFilePath: String;
     InTransaction: Boolean;
@@ -55,7 +53,6 @@ type
     method ShowPlaylists;
     method DeleteSong(SongUid: String): Boolean;
     method MakeStringFromCString(CString: ^Byte): String;
-    //method MakeCStringFromString(s: String): array  of Char;
   end;
 
 //*******************************************************************************
@@ -972,28 +969,8 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.SqlWhereClause: String;
-var
-  Encryption: Integer;
-  Compression: Integer;
-  WhereClause: String;
 begin
-  if UseEncryption then
-    Encryption := 1
-  else
-    Encryption := 0;
-
-  if UseCompression then
-    Compression := 1
-  else
-    Compression := 0;
-
-  WhereClause := " WHERE ";
-  WhereClause := WhereClause + "encrypted = ";
-  WhereClause := WhereClause + Convert.ToString(Encryption);
-  WhereClause := WhereClause + " AND ";
-  WhereClause := WhereClause + "compressed = ";
-  WhereClause := WhereClause + Convert.ToString(Compression);
-  result := WhereClause;
+  result := " WHERE encrypted = 0";
 end;
 
 //*******************************************************************************
@@ -1318,23 +1295,6 @@ begin
   end;
 end;
 
-//*******************************************************************************
-
-/*
-method JukeboxDB.MakeCStringFromString(s: String): ^CharChar;
-begin
-  if s = nil then begin
-    result := nil;
-  end
-  else begin
-    //result := s.ToByteArray();
-    //result := Encoding.ASCII.GetBytes(s);
-    //result := Encoding.UTF8.GetBytes(s);
-    //result := s.ToCharArray;
-    result := Encoding.UTF16LE.GetBytes(s) as array  of Char;
-  end;
-end;
-*/
 //*******************************************************************************
 
 end.

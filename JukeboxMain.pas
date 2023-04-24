@@ -172,8 +172,8 @@ begin
   end;
 
   if (theAwsAccessKey.Length() = 0) or (theAwsSecretKey.Length() = 0) then begin
-    writeLn("error: no s3 credentials given. please specify aws_access_key " +
-            "and aws_secret_key in credentials file");
+    writeLn("error: no s3 credentials given. please specify {0} and {1} in credentials file",
+            awsAccessKey, awsSecretKey);
     exit nil;
   end
   else begin

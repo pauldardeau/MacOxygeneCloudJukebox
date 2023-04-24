@@ -22,7 +22,7 @@ type
     const jukeboxPidFileName = "jukebox.pid";
 
   public
-    GlobalJukebox: ^Jukebox := nil; static;
+    GlobalJukebox: Jukebox := nil; static;
   private
     JukeboxOptions: JukeboxOptions;
     StorageSystem: StorageSystem;
@@ -159,7 +159,7 @@ begin
   end;
 
   // delete metadata DB file if present
-  const MetadataDbFile = "jukebox_db.sqlite3";
+  const MetadataDbFile = defaultDbFileName;
   if Utils.FileExists(MetadataDbFile) then begin
     if aDebugPrint then begin
       writeLn("deleting existing metadata DB file");
@@ -178,7 +178,7 @@ constructor Jukebox(JbOptions: JukeboxOptions;
                     aDebugPrint: Boolean);
 begin
   if GlobalJukebox = nil then begin
-    GlobalJukebox := @self;
+    GlobalJukebox := self;
   end
   else begin
     //TODO: throw an exception (only 1 Jukebox instance allowed)
@@ -233,16 +233,16 @@ class method SigHandler(signum: Integer);
 begin
   if Jukebox.GlobalJukebox <> nil then begin
     if signum = SIGUSR1 then begin
-      Jukebox.GlobalJukebox^.TogglePausePlay;
+      Jukebox.GlobalJukebox.TogglePausePlay;
     end
     else if signum = SIGUSR2 then begin
-      Jukebox.GlobalJukebox^.AdvanceToNextSong;
+      Jukebox.GlobalJukebox.AdvanceToNextSong;
     end
     else if signum = SIGINT then begin
-      Jukebox.GlobalJukebox^.PrepareForTermination;
+      Jukebox.GlobalJukebox.PrepareForTermination;
     end
     else if signum = SIGWINCH then begin
-      Jukebox.GlobalJukebox^.DisplayInfo;
+      Jukebox.GlobalJukebox.DisplayInfo;
     end;
   end;
 end;
@@ -395,7 +395,7 @@ begin
 
   // terminate audio player if it's running
   if AudioPlayerProcess <> nil then begin
-    AudioPlayerProcess.Stop();
+    AudioPlayerProcess.Stop;
     AudioPlayerProcess := nil;
   end;
 end;
@@ -908,6 +908,7 @@ begin
                                          Args,
                                          Env,
                                          SongPlayDirPath);
+      AudioPlayerProcess := nil;
 
       // if the audio player failed or is not present, just sleep
       // for the length of time that audio would be played
@@ -929,7 +930,7 @@ begin
   else begin
     writeLn("song file doesn't exist: '{0}'", SongFilePath);
     const FileNotFoundPath = Utils.PathJoin(JukeboxOptions.Directory, "404.txt");
-    Utils.FileAppendAllText(FileNotFoundPath, SongFilePath + "\n");
+    Utils.FileAppendAllText(FileNotFoundPath, SongFilePath + Environment.LineBreak);
   end;
 end;
 
@@ -1113,7 +1114,7 @@ begin
     writeLn("first song downloaded. starting playing now.");
 
     const pidAsText = String.Format("{0}" + Environment.LineBreak, Utils.GetPid());
-    const pidFilePath = Utils.PathJoin(JukeboxOptions.Directory, "jukebox.pid");
+    const pidFilePath = Utils.PathJoin(JukeboxOptions.Directory, jukeboxPidFileName);
     Utils.FileWriteAllText(pidFilePath, pidAsText);
 
     try

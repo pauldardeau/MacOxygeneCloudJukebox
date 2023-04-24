@@ -30,9 +30,13 @@ type
 
 //*******************************************************************************
 
-    method EncodeArtistAlbumSong(artist: String; album: String; song: String): String;
+    method EncodeArtistAlbumSong(artist: String;
+                                 album: String;
+                                 song: String): String;
     begin
-      result := EncodeArtistAlbum(artist, album) + DoubleDashes + EncodeValue(song);
+      result := EncodeArtistAlbum(artist, album) +
+                DoubleDashes +
+                EncodeValue(song);
     end;
 
 //*******************************************************************************
@@ -49,6 +53,10 @@ type
 
       if s.Contains("?") then begin
         s := s.Replace("?", "");
+      end;
+
+      if s.Contains("&") then begin
+        s := s.Replace("&", "");
       end;
 
       result := s;
