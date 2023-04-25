@@ -489,7 +489,7 @@ type
 
 			try
 				const Reader = new IniReader(IniFileName);
-				if not Reader.ReadSection(OsIdentifier, Kvp) then begin
+				if not Reader.ReadSection(OsIdentifier, var Kvp) then begin
 					writeLn("error: no config section present for '{0}'", OsIdentifier);
 					exit false;
 				end

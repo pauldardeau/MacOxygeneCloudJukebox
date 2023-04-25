@@ -16,6 +16,7 @@ type
     method Count():Integer;
     method GetValue(Key: String): String;
     method GetKeys(): ImmutableList<String>;
+    method ShowContents;
   end;
 
 //*****************************************************************************
@@ -48,7 +49,7 @@ end;
 
 method KeyValuePairs.ContainsKey(Key: String): Boolean;
 begin
-  DictKeyValues.ContainsKey(Key);
+  result := DictKeyValues.ContainsKey(Key);
 end;
 
 //*****************************************************************************
@@ -73,5 +74,12 @@ begin
 end;
 
 //*****************************************************************************
+
+method KeyValuePairs.ShowContents;
+begin
+  for each key in DictKeyValues.Keys do begin
+    writeLn("key = '{0}', value = '{1}'", key, GetValue(key));
+  end;
+end;
 
 end.

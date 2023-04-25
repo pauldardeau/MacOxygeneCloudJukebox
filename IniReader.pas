@@ -16,14 +16,14 @@ type
 		const COMMENT_IDENTIFIER = '#';
 
 		constructor(aIniFile: String);
-		method ReadSection(Section: String; SectionValues: KeyValuePairs): Boolean;
+		method ReadSection(Section: String; var SectionValues: KeyValuePairs): Boolean;
 		method GetSectionKeyValue(Section: String;
 															Key: String;
 															out Value: String): Boolean;
 		method HasSection(Section: String): Boolean;
+		method ReadFile(): Boolean;
 
 	protected
-		method ReadFile(): Boolean;
 		method BracketedSection(SectionName: String): String;
 	end;
 
@@ -42,11 +42,9 @@ end;
 //*******************************************************************************
 
 method IniReader.ReadSection(Section: String;
-														 SectionValues: KeyValuePairs): Boolean;
+														 var SectionValues: KeyValuePairs): Boolean;
 var
 	SectionContents: String;
-	PosEOL: Integer;
-	Line: String;
 begin
 	const SectionId = BracketedSection(Section);
 	const PosSection = FileContents.IndexOf(SectionId);
@@ -72,35 +70,39 @@ begin
 		SectionContents := FileContents.Substring(PosEndSection);
 	end;
 
-	var Index := 0;
+	SectionContents := SectionContents.Trim;
 
-	// process each line of the section
-	while (PosEOL := SectionContents.IndexOf(EOL_LF, Index)) <> -1 do begin
+	if SectionContents.Length = 0 then begin
+		writeLn("section in .ini file is empty");
+		exit false;
+	end;
 
-		Line := SectionContents.Substring(Index, PosEOL - Index);
-		if Line.Length() = 0 then begin
-			const PosCR = Line.IndexOf(EOL_CR);
-			if PosCR <> -1 then begin
-				Line := Line.Substring(0, PosCR);
-			end;
+	var SectionLines := SectionContents.Split(Environment.LineBreak);
+	var PairsAdded := 0;
 
-			const PosEqual = Line.IndexOf('=');
-
-			if (PosEqual <> -1) and (PosEqual < Line.Length()) then begin
-				const Key = Line.Substring(0, PosEqual).Trim();
-
-				// if the line is not a comment
-				if not Key.StartsWith(COMMENT_IDENTIFIER) then begin
-					SectionValues.AddPair(Key,
-																Line.Substring(PosEqual + 1).Trim());
+	for each SectionLine in SectionLines do begin
+		const TrimmedLine = SectionLine.Trim;
+		if TrimmedLine.Length > 0 then begin
+			if TrimmedLine.Contains("=") then begin
+				const LineFields = TrimmedLine.Split("=");
+				if LineFields.Count = 2 then begin
+					const Key = LineFields[0].Trim;
+					const Value = LineFields[1].Trim;
+					if (Key.Length > 0) and (Value.Length > 0) then begin
+						SectionValues.AddPair(Key, Value);
+						inc(PairsAdded);
+					end;
 				end;
 			end;
 		end;
-
-		Index := PosEOL + 1;
 	end;
 
-	exit true;
+	if PairsAdded > 0 then begin
+		exit true;
+	end
+	else begin
+		exit false;
+	end;
 end;
 
 //*******************************************************************************
@@ -111,7 +113,7 @@ method IniReader.GetSectionKeyValue(Section: String;
 begin
 	var Map := new KeyValuePairs;
 
-	if not ReadSection(Section, Map) then begin
+	if not ReadSection(Section, var Map) then begin
 		writeLn('IniReader ReadSection returned false');
 		exit false;
 	end;

@@ -8,18 +8,35 @@ interface
 type
   Jukebox = public class
   public
-    const downloadExtension = ".download";
+    // containers
     const albumContainerSuffix = "albums";
     const albumArtContainerSuffix = "album-art";
     const metadataContainerSuffix = "music-metadata";
     const playlistContainerSuffix = "playlists";
     const songContainerSuffix = "-artist-songs";
+
+    // directories
     const albumArtImportDir = "album-art-import";
     const playlistImportDir = "playlist-import";
     const songImportDir = "song-import";
     const songPlayDir = "song-play";
-    const defaultDbFileName = "jukebox_db.sqlite3";
+
+    // files
+    const downloadExtension = ".download";
     const jukeboxPidFileName = "jukebox.pid";
+    const JsonFileExt = ".json";
+    const IniFileName = "audio_player.ini";
+    const defaultDbFileName = "jukebox_db.sqlite3";
+
+    // audio file INI contents
+    const keyAudioPlayerExeFileName = "audio_player_exe_file_name";
+    const keyAudioPlayerCommandArgs = "audio_player_command_args";
+    const keyAudioPlayerResumeArgs = "audio_player_resume_args";
+
+    // placeholders
+    const phAudioFilePath = "%%AUDIO_FILE_PATH%%";
+    const phStartSongTimeOffset = "%%START_SONG_TIME_OFFSET%%";
+
 
   public
     GlobalJukebox: Jukebox := nil; static;
@@ -44,13 +61,17 @@ type
     SongIndex: Integer;
     AudioPlayerExeFileName: String;
     AudioPlayerCommandArgs: String;
+    AudioPlayerResumeArgs: String;
     AudioPlayerProcess: Process;
     SongPlayLengthSeconds: Integer;
     CumulativeDownloadBytes: Int64;
     CumulativeDownloadTime: Integer;
     ExitRequested: Boolean;
     IsPaused: Boolean;
+    SongStartTime: Double;
     SongSecondsOffset: Integer;
+    SongPlayIsResume: Boolean;
+    IsRepeatMode: Boolean;
     Downloader: SongDownloader;
     DownloadThread: Thread;
     IniFilePath: String;
@@ -115,6 +136,7 @@ type
                                         ListTrackObjects: List<String>): Boolean;
     method GetPlaylistSongs(Playlist: String;
                             ListSongs: List<SongMetadata>): Boolean;
+    method ReadAudioPlayerConfig;
 
   end;
 
@@ -892,15 +914,43 @@ begin
   if Utils.FileExists(SongFilePath) then begin
     writeLn("playing {0}", Song.Fm.FileUid);
     if AudioPlayerExeFileName.Length > 0 then begin
-      var Args := new List<String>();
-      if AudioPlayerCommandArgs.Length > 0 then begin
-        const VecAddlArgs = AudioPlayerCommandArgs.Split(" ");
-        for each AddlArg in VecAddlArgs do begin
-          Args.Add(AddlArg);
+      var didResume := false;
+      var commandArgs := "";
+      if SongPlayIsResume then begin
+        const placeholder = phStartSongTimeOffset;
+        const posPlaceholder =
+            AudioPlayerResumeArgs.IndexOf(placeholder);
+        if posPlaceholder > -1 then begin
+          commandArgs := AudioPlayerResumeArgs;
+          var theSongStartTime: String := "";
+          const minutes = SongSecondsOffset / 60;
+          if minutes > 0 then begin
+            theSongStartTime := minutes.ToString();
+            theSongStartTime := theSongStartTime + ":";
+            const remainingSeconds = SongSecondsOffset mod 60;
+            var secondsText := remainingSeconds.ToString();
+            if secondsText.length = 1 then begin
+              secondsText := "0" + secondsText;
+            end;
+            theSongStartTime := theSongStartTime + secondsText;
+          end
+          else begin
+            theSongStartTime := SongSecondsOffset.ToString();
+          end;
+          //writeLn("resuming at '{0}'", songStartTime);
+          commandArgs := commandArgs.Replace(phStartSongTimeOffset, theSongStartTime);
+          commandArgs := commandArgs.Replace(phAudioFilePath, SongFilePath);
+          didResume := true;
+          //writeLn("commandArgs: '{0}'", commandArgs);
         end;
       end;
-      Args.Add(SongFilePath);
 
+      if not didResume then begin
+        commandArgs := AudioPlayerCommandArgs;
+        commandArgs := commandArgs.Replace(phAudioFilePath, SongFilePath);
+      end;
+
+      const Args = commandArgs.Split(" ");
       const Env = new Dictionary<String,String>();
 
       AudioPlayerProcess := new Process();
@@ -1051,10 +1101,124 @@ end;
 
 //*******************************************************************************
 
+method Jukebox.ReadAudioPlayerConfig;
+begin
+  if not Utils.FileExists(IniFileName) then begin
+    writeLn("error: missing {0} config file", IniFileName);
+    exit;
+  end;
+
+  const osIdentifier = Utils.GetPlatformIdentifier();
+  if osIdentifier = Utils.PLATFORM_UNKNOWN then begin
+    writeLn("error: no audio-player specific lookup defined for this OS (unknown)");
+    exit;
+  end;
+
+  var charsToStrip: array  of Char;
+  charsToStrip := new Char[1];
+  charsToStrip[0] := '"';
+
+  AudioPlayerExeFileName := "";
+  AudioPlayerCommandArgs := "";
+  AudioPlayerResumeArgs := "";
+
+  var iniReader := new IniReader(IniFileName);
+  if not iniReader.ReadFile() then begin
+    writeLn("error: unable to read ini config file '{0}'", IniFileName);
+    exit;
+  end;
+
+  var kvpAudioPlayer := new KeyValuePairs();
+  if not iniReader.ReadSection(osIdentifier, var kvpAudioPlayer) then begin
+    writeLn("error: no config section present for '{0}'", osIdentifier);
+    exit;
+  end;
+
+  var key := keyAudioPlayerExeFileName;
+
+  if kvpAudioPlayer.ContainsKey(key) then begin
+    AudioPlayerExeFileName := kvpAudioPlayer.GetValue(key);
+
+    if AudioPlayerExeFileName.StartsWith('"') and
+       AudioPlayerExeFileName.EndsWith('"') then begin
+
+      AudioPlayerExeFileName := AudioPlayerExeFileName.Trim(charsToStrip);
+    end;
+
+    AudioPlayerExeFileName := AudioPlayerExeFileName.Trim();
+
+    if AudioPlayerExeFileName.Length = 0 then begin
+      writeLn("error: no value given for '{0}' within [{1}]", key, osIdentifier);
+      exit;
+    end;
+  end
+  else begin
+    writeLn("error: {0} missing value for '{1}' within [{2}]", IniFileName, key, osIdentifier);
+    exit;
+  end;
+
+  key := keyAudioPlayerCommandArgs;
+
+  if kvpAudioPlayer.ContainsKey(key) then begin
+    AudioPlayerCommandArgs := kvpAudioPlayer.GetValue(key);
+
+    if AudioPlayerCommandArgs.StartsWith('"') and
+       AudioPlayerCommandArgs.EndsWith('"') then begin
+
+      AudioPlayerCommandArgs := AudioPlayerCommandArgs.Trim(charsToStrip);
+    end;
+
+    AudioPlayerCommandArgs := AudioPlayerCommandArgs.Trim();
+    if AudioPlayerCommandArgs.Length = 0 then begin
+      writeLn("error: no value given for '{0}' within [{1}]", key, osIdentifier);
+      exit;
+    end;
+
+    const placeholder = phAudioFilePath;
+    const posPlaceholder = AudioPlayerCommandArgs.IndexOf(placeholder);
+    if posPlaceholder = -1 then begin
+      writeLn("error: {0} value does not contain placeholder '{1}'", key, placeholder);
+      exit;
+    end;
+  end
+  else begin
+    writeLn("error: {0} missing value for '{1}' within [{2}]", IniFileName, key, osIdentifier);
+    exit;
+  end;
+
+  key := keyAudioPlayerResumeArgs;
+
+  if kvpAudioPlayer.ContainsKey(key) then begin
+    AudioPlayerResumeArgs := kvpAudioPlayer.GetValue(key);
+
+    if AudioPlayerResumeArgs.StartsWith('"') and AudioPlayerResumeArgs.EndsWith('"') then begin
+      AudioPlayerResumeArgs := AudioPlayerResumeArgs.Trim(charsToStrip);
+    end;
+
+    AudioPlayerResumeArgs := AudioPlayerResumeArgs.Trim();
+    if AudioPlayerResumeArgs.Length > 0 then begin
+      const placeholder = phStartSongTimeOffset;
+      const posPlaceholder = AudioPlayerResumeArgs.IndexOf(placeholder);
+      if posPlaceholder = -1 then begin
+        writeLn("error: {0} value does not contain placeholder '{1}'", key, placeholder);
+        writeLn("ignoring '{0}', using '{1}' for song resume", key, keyAudioPlayerCommandArgs);
+        AudioPlayerResumeArgs := "";
+      end;
+    end;
+  end;
+
+  if AudioPlayerResumeArgs.Length = 0 then begin
+    AudioPlayerResumeArgs := AudioPlayerCommandArgs;
+  end;
+end;
+
+//*******************************************************************************
+
 method Jukebox.PlaySongList(aSongList: List<SongMetadata>; Shuffle: Boolean);
 begin
   SongList := aSongList;
   NumberSongs := aSongList.Count;
+  SongIndex := 0;
 
   if NumberSongs = 0 then begin
     writeLn("no songs in jukebox");
@@ -1076,24 +1240,14 @@ begin
     Utils.DeleteFilesInDirectory(SongPlayDirPath);
   end;
 
-  SongIndex := 0;
   InstallSignalHandlers();
 
-  {$IFDEF MACOS}
-    AudioPlayerExeFileName := "/usr/bin/afplay";
-    AudioPlayerCommandArgs := "";
-  {$ELSEIF LINUX}
-    AudioPlayerExeFileName := "/usr/bin/mplayer";
-    AudioPlayerCommandArgs := "-novideo -nolirc -really-quiet";
-  {$ELSEIF WINDOWS}
-    // we really need command-line support for /play and /close arguments. unfortunately,
-    // this support used to be available in the built-in Windows Media Player, but is
-    // no longer present.
-    AudioPlayerExeFileName := "C:\\Program Files\\MPC-HC\\mpc-hc64.exe";
-    AudioPlayerCommandArgs := "/play /close /minimized";
-  {$ELSE}
-    {$ERROR Unsupported platform}
-  {$ENDIF}
+  ReadAudioPlayerConfig();
+
+  if AudioPlayerExeFileName.Length = 0 then begin
+    writeLn("error: no audio player configured");
+    exit;
+  end;
 
   if Shuffle then begin
     //TODO: the following code is buggy
@@ -1359,7 +1513,9 @@ method Jukebox.RetrieveAlbumTrackObjectList(Artist: String;
                                             ListTrackObjects: List<String>): Boolean;
 begin
   var Success := false;
-  const JsonFileName = String.Format("{0}.json", JBUtils.EncodeArtistAlbum(Artist, Album));
+  const JsonFileName = String.Format("{0}{1}",
+                                     JBUtils.EncodeArtistAlbum(Artist, Album),
+                                     JsonFileExt);
   const LocalJsonFile = Utils.PathJoin(SongPlayDirPath, JsonFileName);
   if StorageSystem.GetObject(AlbumContainer,
                              JsonFileName,
@@ -1395,7 +1551,9 @@ method Jukebox.GetPlaylistSongs(Playlist: String;
                                 ListSongs: List<SongMetadata>): Boolean;
 begin
   var Success := false;
-  const JsonFileName = String.Format("{0}.json", JBUtils.EncodeValue(Playlist));
+  const JsonFileName = String.Format("{0}{1}",
+                                     JBUtils.EncodeValue(Playlist),
+                                     JsonFileExt);
   const LocalJsonFile = Utils.PathJoin(SongPlayDirPath, JsonFileName);
   if StorageSystem.GetObject(PlaylistContainer,
                              JsonFileName,
