@@ -1,7 +1,7 @@
 ﻿namespace MacOxygeneCloudJukebox;
 
 uses
-  rtl;
+  rtl, CloudJukeboxSharedProject;
 
 interface
 
@@ -639,7 +639,7 @@ begin
             fsSong.Fm.OriginFileSize := fileSize;
             //let oFile = RemObjects.Elements.RTL.File(fullPath)
             //TODO: assign fileTime
-            //fsSong.Fm.FileTime = oFile.DateModified
+            //fsSong.Fm.FileTime = oFile.DateModified  // DateModified is a DateTime
             fsSong.ArtistName := artist;
             fsSong.SongName := song;
             const md5Hash = Utils.Md5ForFile(IniFilePath, FullPath);
@@ -669,7 +669,7 @@ begin
                 fsSong.Fm.StoredFileSize := Int64(FileContents.length);
                 //startUploadTime := time.Now()
 
-                var ContainerName := ContainerPrefix + fsSong.Fm.ContainerName;
+                const ContainerName = ContainerPrefix + fsSong.Fm.ContainerName;
 
                 // store song file to storage system
                 if StorageSystem.PutObject(ContainerName,

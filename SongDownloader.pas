@@ -1,5 +1,8 @@
 ﻿namespace MacOxygeneCloudJukebox;
 
+uses
+  CloudJukeboxSharedProject;
+
 interface
 
 type
@@ -35,16 +38,16 @@ begin
 
     for each song in listSongs do begin
       if jukebox.IsExitRequested() then begin
-         break;
+        break;
       end
       else begin
-         jukebox.DownloadSong(song);
+        jukebox.DownloadSong(song);
       end;
     end;
     jukebox.BatchDownloadComplete();
   end
   else begin
-     writeLn("SongDownloader.run: listSongs is empty");
+    writeLn("SongDownloader.run: listSongs is empty");
   end;
 end;
 

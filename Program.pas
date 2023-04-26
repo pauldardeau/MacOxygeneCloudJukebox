@@ -1,7 +1,7 @@
 ﻿namespace MacOxygeneCloudJukebox;
 
 uses
-  Foundation;
+  Foundation, CloudJukeboxSharedProject;
 
 type
   Program = class

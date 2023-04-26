@@ -1,6 +1,8 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # RemObjects Fire
+Project("{656346D9-4656-40DA-A068-22D5425D4639}") = "CloudJukeboxSharedProject", "CloudJukeboxSharedProject\CloudJukeboxSharedProject.elements", "{E8A16A76-BB99-4ED3-B20D-FF5FE9DEEE00}"
+EndProject
 Project("{656346D9-4656-40DA-A068-22D5425D4639}") = "MacOxygeneCloudJukebox", "MacOxygeneCloudJukebox.elements", "{2709D1DC-2482-42A6-BBEB-43CE2ECD6CF5}"
 EndProject
 Project("{656346D9-4656-40DA-A068-22D5425D4639}") = "TestMacJukebox", "TestMacJukebox\TestMacJukebox.elements", "{7FC1E41B-4061-4D97-BE57-0F00A6480CCA}"

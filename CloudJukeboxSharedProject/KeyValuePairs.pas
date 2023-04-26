@@ -1,4 +1,4 @@
-﻿namespace MacOxygeneCloudJukebox;
+﻿namespace CloudJukeboxSharedProject;
 
 interface
 
@@ -54,7 +54,7 @@ end;
 
 //*****************************************************************************
 
-method KeyValuePairs.Count():Integer;
+method KeyValuePairs.Count(): Integer;
 begin
   result := DictKeyValues.Count;
 end;

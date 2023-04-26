@@ -32,25 +32,11 @@
   <ItemGroup>
     <Compile Include="Program.pas" />
     <None Include="Entitlements.entitlements" />
-    <Compile Include="PropertyValue.pas" />
-    <Compile Include="PropertyList.pas" />
-    <Compile Include="PropertySet.pas" />
-    <Compile Include="FileMetadata.pas" />
-    <Compile Include="SongMetadata.pas" />
-    <Compile Include="JukeboxOptions.pas" />
-    <Compile Include="ArgumentParser.pas" />
-    <Compile Include="StorageSystem.pas" />
-    <Compile Include="FSStorageSystem.pas" />
-    <Compile Include="JBUtils.pas" />
-    <Compile Include="Utils.pas" />
-    <Compile Include="StringSet.pas" />
     <Compile Include="JukeboxDB.pas" />
     <Compile Include="Jukebox.pas" />
     <Compile Include="JukeboxMain.pas" />
     <Compile Include="SongDownloader.pas" />
-    <Compile Include="S3ExtStorageSystem.pas" />
-    <Compile Include="KeyValuePairs.pas" />
-    <Compile Include="IniReader.pas" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
+  <Import Project="CloudJukeboxSharedProject\CloudJukeboxSharedProject.projitems" Label="Shared" />
 </Project>

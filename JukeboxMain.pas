@@ -1,5 +1,8 @@
 ﻿namespace MacOxygeneCloudJukebox;
 
+uses
+  CloudJukeboxSharedProject;
+
 interface
 
 type

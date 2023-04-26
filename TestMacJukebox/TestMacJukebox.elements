@@ -33,6 +33,8 @@
     <Compile Include="Program.pas" />
     <None Include="Entitlements.entitlements" />
     <Compile Include="TestJBUtils.pas" />
+    <Compile Include="TestIniReader.pas" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
+  <Import Project="..\CloudJukeboxSharedProject\CloudJukeboxSharedProject.projitems" Label="Shared" />
 </Project>

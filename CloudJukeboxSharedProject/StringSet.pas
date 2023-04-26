@@ -1,4 +1,4 @@
-﻿namespace MacOxygeneCloudJukebox;
+﻿namespace CloudJukeboxSharedProject;
 
 interface
 
@@ -81,7 +81,7 @@ method StringSet.ToString(): String;
 begin
   var s := "";
   for each Value in MapStrings.Keys do begin
-    if s.Length() > 0 then begin
+    if s.Length > 0 then begin
       s := s + ", ";
     end;
     s := s + Value;

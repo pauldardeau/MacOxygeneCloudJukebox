@@ -1,4 +1,4 @@
-﻿namespace MacOxygeneCloudJukebox;
+﻿namespace CloudJukeboxSharedProject;
 
 interface
 
@@ -14,9 +14,10 @@ type
     DebugMode: Boolean;
 
   public
-    const TypeBool = 'bool';
-    const TypeInt = 'int';
-    const TypeString = 'string';
+    const DOUBLE_DASHES = '--';
+    const TYPE_BOOL_VALUE = 'bool';
+    const TYPE_INT_VALUE = 'int';
+    const TYPE_STRING_VALUE = 'string';
 
     constructor(aDebugMode: Boolean := false);
     method AddOption(O: String; OptionType: String; Help: String): Boolean;
@@ -49,16 +50,14 @@ end;
 //*******************************************************************************
 
 method ArgumentParser.AddOption(O: String; OptionType: String; Help: String): Boolean;
-var
-  OptionAdded: Boolean;
 begin
-  OptionAdded := true;
+  var OptionAdded := true;
 
-  if OptionType = TypeBool then
+  if OptionType = TYPE_BOOL_VALUE then
     DictBoolOptions[O] := Help
-  else if OptionType = TypeInt then
+  else if OptionType = TYPE_INT_VALUE then
     DictIntOptions[O] := Help
-  else if OptionType = TypeString then
+  else if OptionType = TYPE_STRING_VALUE then
     DictStringOptions[O] := Help
   else
     OptionAdded := false;
@@ -73,21 +72,21 @@ end;
 
 method ArgumentParser.AddOptionalBoolFlag(Flag: String; Help: String);
 begin
-  AddOption(Flag, TypeBool, Help);
+  AddOption(Flag, TYPE_BOOL_VALUE, Help);
 end;
 
 //*******************************************************************************
 
 method ArgumentParser.AddOptionalIntArgument(Arg: String; Help: String);
 begin
-  AddOption(Arg, TypeInt, Help);
+  AddOption(Arg, TYPE_INT_VALUE, Help);
 end;
 
 //*******************************************************************************
 
 method ArgumentParser.AddOptionalStringArgument(Arg: String; Help: String);
 begin
-  AddOption(Arg, TypeString, Help);
+  AddOption(Arg, TYPE_STRING_VALUE, Help);
 end;
 
 //*******************************************************************************
@@ -129,13 +128,13 @@ begin
     if DictAllReservedWords.ContainsKey(Arg) then begin
       ArgType := DictAllReservedWords[Arg];
       Arg := Arg.Substring(2);
-      if ArgType = TypeBool then begin
+      if ArgType = TYPE_BOOL_VALUE then begin
         if DebugMode then begin
           writeLn("ArgumentParser: adding key={0} value=true", Arg);
         end;
         ps.Add(Arg, new PropertyValue(true));
       end
-      else if ArgType = TypeInt then begin
+      else if ArgType = TYPE_INT_VALUE then begin
         inc(I);
         if I < NumArgs then begin
           NextArg := Args[I];
@@ -152,7 +151,7 @@ begin
           writeLn("ArgumentParser: missing int value for key={0}", Arg);
         end;
       end
-      else if ArgType = TypeString then begin
+      else if ArgType = TYPE_STRING_VALUE then begin
         inc(I);
         if I < NumArgs then begin
           NextArg := Args[I];
@@ -172,7 +171,7 @@ begin
       end;
     end
     else begin
-      if Arg.StartsWith("--") then begin
+      if Arg.StartsWith(DOUBLE_DASHES) then begin
         // unrecognized option
         writeLn("ArgumentParser: unrecognized option {0}", Arg);
       end

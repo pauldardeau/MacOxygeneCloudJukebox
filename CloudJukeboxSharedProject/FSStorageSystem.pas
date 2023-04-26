@@ -1,4 +1,4 @@
-﻿namespace MacOxygeneCloudJukebox;
+﻿namespace CloudJukeboxSharedProject;
 
 interface
 
@@ -9,7 +9,7 @@ type
     DebugMode: Boolean;
 
   public
-    const MetadataFileSuffix = '.meta';
+    const METADATA_FILE_SUFFIX = '.meta';
 
     constructor(aRootDir: String; aDebugMode: Boolean);
     method Enter: Boolean; override;
@@ -148,15 +148,13 @@ end;
 method FSStorageSystem.GetObjectMetadata(ContainerName: String;
                                          ObjectName: String;
                                          DictProps: PropertySet): Boolean;
-var
-  RetrievedMetadata: Boolean;
 begin
-  RetrievedMetadata := false;
+  var RetrievedMetadata := false;
   if ContainerName.Length > 0 and ObjectName.Length > 0 then begin
     const ContainerDir = Utils.PathJoin(RootDir, ContainerName);
     if Utils.DirectoryExists(ContainerDir) then begin
       const ObjectPath = Utils.PathJoin(ContainerDir, ObjectName);
-      const MetaPath = ObjectPath + MetadataFileSuffix;
+      const MetaPath = ObjectPath + METADATA_FILE_SUFFIX;
       if Utils.FileExists(MetaPath) then begin
         RetrievedMetadata := DictProps.ReadFromFile(MetaPath);
       end;
@@ -171,10 +169,8 @@ method FSStorageSystem.PutObject(ContainerName: String;
                                  ObjectName: String;
                                  FileContents: array of Byte;
                                  Headers: PropertySet): Boolean;
-var
-  ObjectAdded: Boolean;
 begin
-  ObjectAdded := false;
+  var ObjectAdded := false;
   if (ContainerName.Length > 0) and
      (ObjectName.Length > 0) and
      (FileContents.length > 0) then begin
@@ -189,7 +185,7 @@ begin
         end;
         if Headers <> nil then begin
           if Headers.Count() > 0 then begin
-            const MetaPath = ObjectPath + MetadataFileSuffix;
+            const MetaPath = ObjectPath + METADATA_FILE_SUFFIX;
             Headers.WriteToFile(MetaPath);
           end;
         end;
@@ -230,14 +226,12 @@ method FSStorageSystem.PutObjectFromFile(ContainerName: String;
                                          ObjectName: String;
                                          FilePath: String;
                                          Headers: PropertySet): Boolean;
-var
-  ObjectAdded: Boolean;
 begin
-  ObjectAdded := false;
+  var ObjectAdded := false;
 
-  if (ContainerName.Length() > 0) and
-     (ObjectName.Length() > 0) and
-     (FilePath.Length() > 0) then begin
+  if (ContainerName.Length > 0) and
+     (ObjectName.Length > 0) and
+     (FilePath.Length > 0) then begin
 
     const ContainerDir = Utils.PathJoin(RootDir, ContainerName);
     if Utils.DirectoryExists(ContainerDir) then begin
@@ -249,7 +243,7 @@ begin
         end;
         if Headers <> nil then begin
           if Headers.Count() > 0 then begin
-            const MetaPath = ObjectPath + MetadataFileSuffix;
+            const MetaPath = ObjectPath + METADATA_FILE_SUFFIX;
             Headers.WriteToFile(MetaPath);
           end;
         end;
@@ -266,13 +260,13 @@ begin
   end
   else begin
     if DebugMode then begin
-      if ContainerName.Length() = 0 then begin
+      if ContainerName.Length = 0 then begin
         writeLn("container name is missing, can't put object");
       end;
-      if ObjectName.Length() = 0 then begin
+      if ObjectName.Length = 0 then begin
         writeLn("object name is missing, can't put object");
       end;
-      if FilePath.Length() = 0 then begin
+      if FilePath.Length = 0 then begin
         writeLn("object file path is empty, can't put object");
       end;
     end;
@@ -284,10 +278,8 @@ end;
 
 method FSStorageSystem.DeleteObject(ContainerName: String;
                                     ObjectName: String): Boolean;
-var
-  ObjectDeleted: Boolean;
 begin
-  ObjectDeleted := false;
+  var ObjectDeleted := false;
   if ContainerName.Length > 0 and ObjectName.Length > 0 then begin
     const ContainerDir = Utils.PathJoin(RootDir, ContainerName);
     const ObjectPath = Utils.PathJoin(ContainerDir, ObjectName);
@@ -298,7 +290,7 @@ begin
         if DebugMode then begin
           writeLn("object deleted: {0}/{1}", ContainerName, ObjectName);
         end;
-        const MetaPath = ObjectPath + MetadataFileSuffix;
+        const MetaPath = ObjectPath + METADATA_FILE_SUFFIX;
         if Utils.FileExists(MetaPath) then begin
           Utils.DeleteFile(MetaPath);
         end;
@@ -328,10 +320,8 @@ end;
 method FSStorageSystem.GetObject(ContainerName: String;
                                  ObjectName: String;
                                  LocalFilePath: String): Int64;
-var
-  BytesRetrieved: Int64;
 begin
-  BytesRetrieved := 0;
+  var BytesRetrieved: Int64 := 0;
 
   if (ContainerName.Length > 0) and
      (ObjectName.Length > 0) and

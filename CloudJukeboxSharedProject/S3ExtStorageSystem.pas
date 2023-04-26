@@ -1,4 +1,4 @@
-﻿namespace MacOxygeneCloudJukebox;
+﻿namespace CloudJukeboxSharedProject;
 
 interface
 type
@@ -359,42 +359,42 @@ begin
 
   if Headers <> nil then begin
     if Headers.Contains(PropertySet.PROP_CONTENT_LENGTH) then begin
-      const content_length =
+      const contentLength =
            Headers.GetULongValue(PropertySet.PROP_CONTENT_LENGTH);
       sbMetadataProps.Append("contentLength=");
-      sbMetadataProps.Append(String(content_length));
+      sbMetadataProps.Append(Convert.ToString(contentLength));
       sbMetadataProps.Append(" ");
     end;
 
     if Headers.Contains(PropertySet.PROP_CONTENT_TYPE) then begin
-      const content_type =
+      const contentType =
           Headers.GetStringValue(PropertySet.PROP_CONTENT_TYPE);
       // contentType
-      if content_type.Length() > 0 then begin
+      if contentType.Length > 0 then begin
         sbMetadataProps.Append("contentType=");
-        sbMetadataProps.Append(content_type);
+        sbMetadataProps.Append(contentType);
         sbMetadataProps.Append(" ");
       end;
     end;
 
     if Headers.Contains(PropertySet.PROP_CONTENT_MD5) then begin
-      const content_md5 =
+      const contentMd5 =
         Headers.GetStringValue(PropertySet.PROP_CONTENT_MD5);
       // md5
-      if content_md5.Length() > 0 then begin
+      if contentMd5.Length > 0 then begin
         sbMetadataProps.Append("md5=");
-        sbMetadataProps.Append(content_md5);
+        sbMetadataProps.Append(contentMd5);
         sbMetadataProps.Append(" ");
       end;
     end;
 
     if Headers.Contains(PropertySet.PROP_CONTENT_ENCODING) then begin
-      const content_encoding =
+      const contentEncoding =
         Headers.GetStringValue(PropertySet.PROP_CONTENT_ENCODING);
       // contentEncoding
-      if content_encoding.Length() > 0 then begin
+      if contentEncoding.Length > 0 then begin
         sbMetadataProps.Append("contentEncoding=");
-        sbMetadataProps.Append(content_encoding);
+        sbMetadataProps.Append(contentEncoding);
         sbMetadataProps.Append(" ");
       end;
     end;
@@ -410,7 +410,7 @@ begin
   var MetadataProps: String := sbMetadataProps.ToString();
   MetadataProps := MetadataProps.Trim();
 
-  if MetadataProps.Length() > 0 then begin
+  if MetadataProps.Length > 0 then begin
     ScriptTemplate := scrTemplatePutObjectWithProperties;
     Kvp.AddPair("%%METADATA_PROPERTIES%%", MetadataProps);
   end
@@ -480,7 +480,7 @@ begin
              LocalFilePath);
   end;
 
-  if LocalFilePath.Length() = 0 then begin
+  if LocalFilePath.Length = 0 then begin
     writeLn("error: local file path is empty");
     exit 0;
   end;
@@ -563,7 +563,7 @@ begin
     end;
     const FirstLine = FileLines[0];
     if FirstLine.StartsWith("#!") then begin
-      const LineLength = FirstLine.Length();
+      const LineLength = FirstLine.Length;
       ExecutablePath := FirstLine.Substring(2, LineLength-2);
     end
     else begin
@@ -593,10 +593,10 @@ begin
     end;
 
     if ExitCode = 0 then begin
-      if StdOut.Length() > 0 then begin
+      if StdOut.Length > 0 then begin
         const OutputLines = StdOut.Split(Environment.LineBreak, true);
         for each line in OutputLines do begin
-          if line.Length() > 0 then begin
+          if line.Length > 0 then begin
             ListOutputLines.Add(line);
           end;
         end;
@@ -633,7 +633,7 @@ begin
       end;
       const FirstLine = FileLines[0];
       if FirstLine.StartsWith("#!") then begin
-         const LineLength = FirstLine.Length();
+         const LineLength = FirstLine.Length;
          ExecutablePath := FirstLine.Substring(2, LineLength-2);
       end
       else begin
@@ -687,7 +687,7 @@ begin
     end;
     const FirstLine = FileLines[0];
     if FirstLine.StartsWith("#!") then begin
-      const LineLength = FirstLine.Length();
+      const LineLength = FirstLine.Length;
       ExecutablePath := FirstLine.Substring(2, LineLength-2);
     end
     else begin

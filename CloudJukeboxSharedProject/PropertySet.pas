@@ -1,4 +1,4 @@
-﻿namespace MacOxygeneCloudJukebox;
+﻿namespace CloudJukeboxSharedProject;
 
 interface
 
@@ -13,15 +13,16 @@ type
     const PROP_CONTENT_TYPE = "Content-Type";
     const PROP_CONTENT_MD5 = "Content-MD5";
 
-    const valueTrue = "true";
-    const valueFalse = "false";
+    const VALUE_TRUE = "true";
+    const VALUE_FALSE = "false";
 
-    const typeBool = "bool";
-    const typeString = "string";
-    const typeInt = "int";
-    const typeLong = "long";
-    const typeULong = "ulong";
-    const typeNull = "null";
+    const TYPE_BOOL = "bool";
+    const TYPE_STRING = "string";
+    const TYPE_INT = "int";
+    const TYPE_LONG = "long";
+    const TYPE_ULONG = "ulong";
+    const TYPE_DOUBLE = "double";
+    const TYPE_NULL = "null";
 
     constructor();
 
@@ -176,27 +177,30 @@ begin
     if PV.IsBool() then begin
       var BoolValue := "";
       if PV.GetBoolValue() then begin
-        BoolValue := valueTrue;
+        BoolValue := VALUE_TRUE;
       end
       else begin
-        BoolValue := valueFalse;
+        BoolValue := VALUE_FALSE;
       end;
-      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeBool, PropName, BoolValue));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_BOOL, PropName, BoolValue));
     end
     else if PV.IsString() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeString, PropName, PV.GetStringValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_STRING, PropName, PV.GetStringValue()));
     end
     else if PV.IsInt() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeInt, PropName, PV.GetIntValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_INT, PropName, PV.GetIntValue()));
     end
     else if PV.IsLong() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeLong, PropName, PV.GetLongValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_LONG, PropName, PV.GetLongValue()));
     end
     else if PV.IsULong() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeULong, PropName, PV.GetULongValue()));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_ULONG, PropName, PV.GetULongValue()));
+    end
+    else if PV.IsDouble() then begin
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_DOUBLE, PropName, PV.GetDoubleValue()));
     end
     else if PV.IsNull() then begin
-      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, typeNull, PropName, " "));
+      FileContents.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_NULL, PropName, " "));
     end;
   end;
 
@@ -211,6 +215,7 @@ var
   IntValue: Int32;
   LongValue: Int64;
   ULongValue: Int64;
+  DoubleValue: Real;
 begin
   Success := false;
 
@@ -227,50 +232,59 @@ begin
             const PropName = Fields[1].Trim();
             const PropValue = Fields[2].Trim();
             if (DataType.Length > 0) and (PropName.Length > 0) then begin
-              if DataType = typeNull then begin
+              if DataType = TYPE_NULL then begin
                 Add(PropName, new PropertyValue);
               end
               else begin
                 if PropValue.Length > 0 then begin
-                  if DataType = typeBool then begin
-                    if PropValue = valueTrue then begin
+                  if DataType = TYPE_BOOL then begin
+                    if PropValue = VALUE_TRUE then begin
                       Add(PropName, new PropertyValue(true));
                     end
-                    else if PropValue = valueFalse then begin
+                    else if PropValue = VALUE_FALSE then begin
                       Add(PropName, new PropertyValue(false));
                     end
                     else begin
-                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeBool, PropName);
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, TYPE_BOOL, PropName);
                     end;
                   end
-                  else if DataType = typeString then begin
+                  else if DataType = TYPE_STRING then begin
                     Add(PropName, new PropertyValue(PropValue));
                   end
-                  else if DataType = typeInt then begin
+                  else if DataType = TYPE_INT then begin
                     IntValue := Convert.TryToInt32(PropValue);
                     if IntValue <> nil then begin
                       Add(PropName, new PropertyValue(IntValue));
                     end
                     else begin
-                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeInt, PropName);
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, TYPE_INT, PropName);
                     end;
                   end
-                  else if DataType = typeLong then begin
+                  else if DataType = TYPE_LONG then begin
                     LongValue := Convert.TryToInt64(PropValue);
                     if LongValue <> nil then begin
                       Add(PropName, new PropertyValue(LongValue));
                     end
                     else begin
-                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeLong, PropName);
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, TYPE_LONG, PropName);
                     end;
                   end
-                  else if DataType = typeULong then begin
+                  else if DataType = TYPE_ULONG then begin
                     ULongValue := Convert.TryToInt64(PropValue);
                     if ULongValue <> nil then begin
                       Add(PropName, new PropertyValue(ULongValue));
                     end
                     else begin
-                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, typeULong, PropName);
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, TYPE_ULONG, PropName);
+                    end;
+                  end
+                  else if DataType = TYPE_DOUBLE then begin
+                    DoubleValue := Convert.TryToDouble(PropValue);
+                    if DoubleValue <> nil then begin
+                      Add(PropName, new PropertyValue(DoubleValue));
+                    end
+                    else begin
+                      writeLn("error: unrecognized value '{0}' for {1} property '{2}'", PropValue, TYPE_ULONG, PropName);
                     end;
                   end
                   else begin
@@ -291,4 +305,3 @@ end;
 //*******************************************************************************
 
 end.
-
