@@ -7,8 +7,6 @@ uses
 
 type
   TestFSStorageSystem = public class(Test)
-  private
-  protected
   public
     method FirstTest;
   end;

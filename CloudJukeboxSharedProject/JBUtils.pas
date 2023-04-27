@@ -68,6 +68,60 @@ type
 
 //*******************************************************************************
 
+    method ComponentsFromFileName(FileName: String): tuple of (String, String, String);
+    begin
+      if FileName.Length = 0 then begin
+        exit ("", "", "");
+      end;
+
+      const BaseFileName = Utils.GetBaseFileName(FileName);
+
+      const Components = BaseFileName.Split(DOUBLE_DASHES, true);
+      if Components.Count = 3 then begin
+        exit (DecodeValue(Components[0]),
+              DecodeValue(Components[1]),
+              DecodeValue(Components[2]));
+      end
+      else begin
+        exit ("", "", "");
+      end;
+    end;
+
+//*******************************************************************************
+
+    method ArtistFromFileName(FileName: String): String;
+    begin
+      var Artist := "";
+      if FileName.Length > 0 then begin
+        (Artist, _, _) := ComponentsFromFileName(FileName);
+      end;
+      result := Artist;
+    end;
+
+//*******************************************************************************
+
+    method AlbumFromFileName(FileName: String): String;
+    begin
+      var Album := "";
+      if FileName.Length > 0 then begin
+        (_, Album, _) := ComponentsFromFileName(FileName);
+      end;
+      result := Album;
+    end;
+
+//*******************************************************************************
+
+    method SongFromFileName(FileName: String): String;
+    begin
+      var Song := "";
+      if FileName.Length > 0 then begin
+        (_, _, Song) := ComponentsFromFileName(FileName);
+      end;
+      result := Song;
+    end;
+
+//*******************************************************************************
+
   end;
 
 end.
