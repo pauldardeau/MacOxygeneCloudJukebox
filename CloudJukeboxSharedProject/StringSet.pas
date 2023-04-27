@@ -79,13 +79,14 @@ end;
 
 method StringSet.ToString(): String;
 begin
-  var s := "";
+  const sb = new StringBuilder;
   for each Value in MapStrings.Keys do begin
-    if s.Length > 0 then begin
-      s := s + ", ";
+    if sb.Length > 0 then begin
+      sb.Append(", ");
     end;
-    s := s + Value;
+    sb.Append(Value);
   end;
+  exit sb.ToString;
 end;
 
 //*******************************************************************************

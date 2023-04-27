@@ -18,7 +18,7 @@ type
     method GetBoolValue(aIndex: Integer): Boolean;
     method GetStringValue(aIndex: Integer): String;
     method GetDoubleValue(aIndex: Integer): Real;
-    method Count():Integer;
+    method Count(): Integer;
   end;
 
 //*******************************************************************************
@@ -122,7 +122,7 @@ end;
 
 //*******************************************************************************
 
-method PropertyList.Count():Integer;
+method PropertyList.Count(): Integer;
 begin
   result := ListProps.Count;
 end;

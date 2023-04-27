@@ -12,7 +12,6 @@ type
     BoolValue: Boolean;
     StringValue: String;
     DoubleValue: Real;
-    IsNullValue: Boolean;
 
   public
     const TYPE_INT = "Int";
@@ -64,7 +63,6 @@ begin
   BoolValue := false;
   StringValue := "";
   DoubleValue := 0.0;
-  IsNullValue := false;
 end;
 
 //*******************************************************************************
@@ -78,7 +76,6 @@ begin
   BoolValue := false;
   StringValue := "";
   DoubleValue := 0.0;
-  IsNullValue := false;
 end;
 
 //*******************************************************************************
@@ -92,7 +89,6 @@ begin
   BoolValue := false;
   StringValue := "";
   DoubleValue := 0.0;
-  IsNullValue := false;
 end;
 
 //*******************************************************************************
@@ -106,7 +102,6 @@ begin
   BoolValue := aBoolValue;
   StringValue := "";
   DoubleValue := 0.0;
-  IsNullValue := false;
 end;
 
 //*******************************************************************************
@@ -120,7 +115,6 @@ begin
   BoolValue := false;
   StringValue := aStringValue;
   DoubleValue := 0.0;
-  IsNullValue := false;
 end;
 
 //*******************************************************************************
@@ -134,7 +128,6 @@ begin
   BoolValue := false;
   StringValue := "";
   DoubleValue := aDoubleValue;
-  IsNullValue := false;
 end;
 
 //*******************************************************************************
@@ -148,7 +141,6 @@ begin
   BoolValue := false;
   StringValue := "";
   DoubleValue := 0.0;
-  IsNullValue := true;
 end;
 
 //*******************************************************************************

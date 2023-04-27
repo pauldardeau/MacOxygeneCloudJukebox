@@ -34,6 +34,13 @@
     <None Include="Entitlements.entitlements" />
     <Compile Include="TestJBUtils.pas" />
     <Compile Include="TestIniReader.pas" />
+    <Compile Include="TestPropertyValue.pas" />
+    <Compile Include="TestPropertyList.pas" />
+    <Compile Include="TestPropertySet.pas" />
+    <Compile Include="TestKeyValuePairs.pas" />
+    <Compile Include="TestStringSet.pas" />
+    <Compile Include="TestArgumentParser.pas" />
+    <Compile Include="TestFSStorageSystem.pas" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
   <Import Project="..\CloudJukeboxSharedProject\CloudJukeboxSharedProject.projitems" Label="Shared" />
