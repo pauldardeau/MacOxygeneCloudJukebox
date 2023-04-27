@@ -7,8 +7,6 @@ uses
 
 type
   TestIniReader = public class(Test)
-  private
-  protected
   public
     method Test;
   end;

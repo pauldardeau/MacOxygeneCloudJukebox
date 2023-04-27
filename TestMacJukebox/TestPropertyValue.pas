@@ -7,8 +7,6 @@ uses
 
 type
   TestPropertyValue = public class(Test)
-  private
-  protected
   public
     method ConstructWithBool;
     method ConstructWithInt;

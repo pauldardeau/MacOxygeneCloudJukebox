@@ -7,8 +7,6 @@ uses
 
 type
   TestPropertyList = public class(Test)
-  private
-  protected
   public
     method TestConstructor;
     method TestWithNull;

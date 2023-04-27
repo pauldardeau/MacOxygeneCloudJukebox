@@ -7,8 +7,6 @@ uses
 
 type
   TestJBUtils = public class(Test)
-  private
-  protected
   public
     method TestDecodeValue;
     method TestEncodeValue;
