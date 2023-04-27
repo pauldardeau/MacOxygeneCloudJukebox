@@ -69,6 +69,14 @@ begin
   HasPunctuation := "Eureka!";
   NoPunctuation := JBUtils.RemovePunctuation(HasPunctuation);
   Assert.AreEqual(NoPunctuation, "Eureka");
+
+  HasPunctuation := "Wherever you go, there you are!";
+  NoPunctuation := JBUtils.RemovePunctuation(HasPunctuation);
+  Assert.AreEqual(NoPunctuation, "Wherever you go there you are");
+
+  HasPunctuation := "Derek & The Dominos";
+  NoPunctuation := JBUtils.RemovePunctuation(HasPunctuation);
+  Assert.AreEqual(NoPunctuation, "Derek The Dominos");
 end;
 
 //*******************************************************************************

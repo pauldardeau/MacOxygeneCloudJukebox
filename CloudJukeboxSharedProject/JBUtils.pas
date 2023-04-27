@@ -55,8 +55,12 @@ type
         s := s.Replace("?", "");
       end;
 
-      if s.Contains("&") then begin
-        s := s.Replace("&", "");
+      if s.Contains(" & ") then begin
+        s := s.Replace("& ", "");
+      end;
+
+      if s.Contains(",") then begin
+        s := s.Replace(",", "");
       end;
 
       result := s;
