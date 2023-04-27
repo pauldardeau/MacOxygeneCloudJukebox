@@ -288,16 +288,14 @@ end;
 
 method Jukebox.IsExitRequested: Boolean;
 begin
-  result := ExitRequested;
+  exit ExitRequested;
 end;
 
 //*******************************************************************************
 
 method Jukebox.Enter: Boolean;
-var
-  EnterSuccess: Boolean;
 begin
-  EnterSuccess := false;
+  var EnterSuccess := false;
 
   // look for stored metadata in the storage system
   if StorageSystem.HasContainer(MetadataContainer) and
@@ -445,7 +443,7 @@ end;
 
 method Jukebox.GetMetadataDbFilePath: String;
 begin
-  result := Utils.PathJoin(CurrentDir, MetadataDbFile);
+  exit Utils.PathJoin(CurrentDir, MetadataDbFile);
 end;
 
 //*******************************************************************************
@@ -453,30 +451,27 @@ end;
 method Jukebox.ComponentsFromFileName(FileName: String): tuple of (String, String, String);
 begin
   if FileName.Length = 0 then begin
-    result := ("", "", "");
-    exit;
+    exit ("", "", "");
   end;
 
   const BaseFileName = Utils.GetBaseFileName(FileName);
 
   const Components = BaseFileName.Split("--", true);
   if Components.Count = 3 then begin
-    result := (JBUtils.DecodeValue(Components[0]),
-               JBUtils.DecodeValue(Components[1]),
-               JBUtils.DecodeValue(Components[2]));
+    exit (JBUtils.DecodeValue(Components[0]),
+          JBUtils.DecodeValue(Components[1]),
+          JBUtils.DecodeValue(Components[2]));
   end
   else begin
-    result := ("", "", "");
+    exit ("", "", "");
   end;
 end;
 
 //*******************************************************************************
 
 method Jukebox.ArtistFromFileName(FileName: String): String;
-var
-  Artist: String;
 begin
-  Artist := "";
+  var Artist := "";
   if FileName.Length > 0 then begin
      (Artist, _, _) := ComponentsFromFileName(FileName);
   end;
@@ -486,10 +481,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.AlbumFromFileName(FileName: String): String;
-var
-  Album: String;
 begin
-  Album := "";
+  var Album := "";
   if FileName.Length > 0 then begin
     (_, Album, _) := ComponentsFromFileName(FileName);
   end;
@@ -499,10 +492,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.SongFromFileName(FileName: String): String;
-var
-  Song: String;
 begin
-  Song := "";
+  var Song := "";
   if FileName.Length > 0 then begin
     (_, _, Song) := ComponentsFromFileName(FileName);
   end;
@@ -512,10 +503,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.StoreSongMetadata(FsSong: SongMetadata): Boolean;
-var
-  StoreSuccess: Boolean;
 begin
-  StoreSuccess := false;
+  var StoreSuccess := false;
   if JukeboxDb <> nil then begin
     const DbSong = JukeboxDb.RetrieveSong(FsSong.Fm.FileUid);
     if DbSong <> nil then begin
@@ -760,10 +749,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.CheckFileIntegrity(Song: SongMetadata): Boolean;
-var
-  FileIntegrityPassed: Boolean;
 begin
-  FileIntegrityPassed := true;
+  var FileIntegrityPassed := true;
 
   if JukeboxOptions.CheckDataIntegrity then begin
     var FilePath := SongPathInPlaylist(Song);
@@ -773,7 +760,8 @@ begin
 
       var PlaylistMd5 := Utils.Md5ForFile(IniFilePath, FilePath);
       if PlaylistMd5.Length = 0 then begin
-        writeLn("error: unable to calculate MD5 hash for file '{0}'", FilePath);
+        writeLn("error: unable to calculate MD5 hash for file '{0}'",
+                FilePath);
         FileIntegrityPassed := false;
       end
       else begin
@@ -797,7 +785,8 @@ begin
   end
   else begin
     if DebugPrint then
-      writeLn("file integrity bypassed, no jukebox options or check integrity not turned on");
+      writeLn("file integrity bypassed, no jukebox options or check integrity " +
+              "not turned on");
   end;
 
   result := FileIntegrityPassed;
@@ -829,16 +818,15 @@ end;
 //*******************************************************************************
 
 method Jukebox.RetrieveFile(Fm: FileMetadata; DirPath: String): Int64;
-var
-  BytesRetrieved: Int64;
 begin
-  BytesRetrieved := 0;
+  var BytesRetrieved: Int64 := 0;
 
   if DirPath.Length > 0 then begin
-     BytesRetrieved := StorageSystem.GetObject(ContainerPrefix + Fm.ContainerName,
-                                               Fm.ObjectName,
-                                               Utils.PathJoin(DirPath,
-                                                              Fm.FileUid));
+    const ContainerName = ContainerPrefix + Fm.ContainerName;
+    const LocalFilePath = Utils.PathJoin(DirPath, Fm.FileUid);
+    BytesRetrieved := StorageSystem.GetObject(ContainerName,
+                                              Fm.ObjectName,
+                                              LocalFilePath);
   end;
 
   result := BytesRetrieved;
@@ -897,10 +885,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.PlaySong(Song: SongMetadata);
-var
-  ExitCode: Integer;
 begin
-  ExitCode := -1;
+  var ExitCode := -1;
 
   const SongFilePath = SongPathInPlaylist(Song);
 
@@ -973,7 +959,8 @@ begin
   else begin
     writeLn("song file doesn't exist: '{0}'", SongFilePath);
     const FileNotFoundPath = Utils.PathJoin(JukeboxOptions.Directory, "404.txt");
-    Utils.FileAppendAllText(FileNotFoundPath, SongFilePath + Environment.LineBreak);
+    Utils.FileAppendAllText(FileNotFoundPath,
+                            SongFilePath + Environment.LineBreak);
   end;
 end;
 
@@ -1044,7 +1031,8 @@ begin
     end
     else begin
       if DebugPrint then begin
-        writeLn("Not downloading more songs b/c downloader != NULL or download_thread != NULL");
+        writeLn("Not downloading more songs b/c downloader != NULL or " +
+                "DownloadThread <> nil");
       end;
     end;
   end;
@@ -1141,12 +1129,14 @@ begin
     AudioPlayerExeFileName := AudioPlayerExeFileName.Trim();
 
     if AudioPlayerExeFileName.Length = 0 then begin
-      writeLn("error: no value given for '{0}' within [{1}]", key, osIdentifier);
+      writeLn("error: no value given for '{0}' within [{1}]",
+              key, osIdentifier);
       exit;
     end;
   end
   else begin
-    writeLn("error: {0} missing value for '{1}' within [{2}]", IniFileName, key, osIdentifier);
+    writeLn("error: {0} missing value for '{1}' within [{2}]",
+            IniFileName, key, osIdentifier);
     exit;
   end;
 
@@ -1163,19 +1153,22 @@ begin
 
     AudioPlayerCommandArgs := AudioPlayerCommandArgs.Trim();
     if AudioPlayerCommandArgs.Length = 0 then begin
-      writeLn("error: no value given for '{0}' within [{1}]", key, osIdentifier);
+      writeLn("error: no value given for '{0}' within [{1}]",
+              key, osIdentifier);
       exit;
     end;
 
     const placeholder = phAudioFilePath;
     const posPlaceholder = AudioPlayerCommandArgs.IndexOf(placeholder);
     if posPlaceholder = -1 then begin
-      writeLn("error: {0} value does not contain placeholder '{1}'", key, placeholder);
+      writeLn("error: {0} value does not contain placeholder '{1}'",
+              key, placeholder);
       exit;
     end;
   end
   else begin
-    writeLn("error: {0} missing value for '{1}' within [{2}]", IniFileName, key, osIdentifier);
+    writeLn("error: {0} missing value for '{1}' within [{2}]",
+            IniFileName, key, osIdentifier);
     exit;
   end;
 
@@ -1184,7 +1177,9 @@ begin
   if kvpAudioPlayer.ContainsKey(key) then begin
     AudioPlayerResumeArgs := kvpAudioPlayer.GetValue(key);
 
-    if AudioPlayerResumeArgs.StartsWith('"') and AudioPlayerResumeArgs.EndsWith('"') then begin
+    if AudioPlayerResumeArgs.StartsWith('"') and
+       AudioPlayerResumeArgs.EndsWith('"') then begin
+
       AudioPlayerResumeArgs := AudioPlayerResumeArgs.Trim(charsToStrip);
     end;
 
@@ -1193,8 +1188,10 @@ begin
       const placeholder = phStartSongTimeOffset;
       const posPlaceholder = AudioPlayerResumeArgs.IndexOf(placeholder);
       if posPlaceholder = -1 then begin
-        writeLn("error: {0} value does not contain placeholder '{1}'", key, placeholder);
-        writeLn("ignoring '{0}', using '{1}' for song resume", key, keyAudioPlayerCommandArgs);
+        writeLn("error: {0} value does not contain placeholder '{1}'",
+                key, placeholder);
+        writeLn("ignoring '{0}', using '{1}' for song resume",
+                key, keyAudioPlayerCommandArgs);
         AudioPlayerResumeArgs := "";
       end;
     end;
@@ -1351,10 +1348,9 @@ end;
 
 method Jukebox.ReadFileContents(FilePath: String): tuple of (Boolean, array of Byte);
 var
-  FileRead: Boolean;
   FileContents: array of Byte;
 begin
-  FileRead := false;
+  var FileRead := false;
 
   FileContents := Utils.FileReadAllBytes(FilePath);
   if FileContents.Count = 0 then begin
@@ -1373,12 +1369,9 @@ end;
 //*******************************************************************************
 
 method Jukebox.UploadMetadataDb: Boolean;
-var
-  MetadataDbUpload: Boolean;
-  HaveMetadataContainer: Boolean;
 begin
-  MetadataDbUpload := false;
-  HaveMetadataContainer := false;
+  var MetadataDbUpload := false;
+  var HaveMetadataContainer := false;
   if not StorageSystem.HasContainer(MetadataContainer) then
     HaveMetadataContainer :=
       StorageSystem.CreateContainer(MetadataContainer)
@@ -1422,21 +1415,19 @@ end;
 
 method Jukebox.ImportPlaylists;
 var
-  FileImportCount: Integer;
-  HaveContainer: Boolean;
   FileRead: Boolean;
   FileContents: array of Byte;
 begin
   if JukeboxDb <> nil then begin
     if JukeboxDb.IsOpen() then begin
-      FileImportCount := 0;
+      var FileImportCount := 0;
       var DirListing := Utils.ListFilesInDirectory(PlaylistImportDirPath);
       if DirListing.Count = 0 then begin
         writeLn("no playlists found");
         exit;
       end;
 
-      HaveContainer := false;
+      var HaveContainer := false;
       if not StorageSystem.HasContainer(PlaylistContainer) then
         HaveContainer :=
           StorageSystem.CreateContainer(PlaylistContainer)
@@ -1671,10 +1662,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.DeleteSong(SongUid: String; UploadMetadata: Boolean): Boolean;
-var
-  IsDeleted: Boolean;
 begin
-  IsDeleted := false;
+  var IsDeleted := false;
   if SongUid.Length > 0 then begin
     if JukeboxDb <> nil then begin
       const DbDeleted = JukeboxDb.DeleteSong(SongUid);
@@ -1694,10 +1683,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.DeleteArtist(Artist: String): Boolean;
-var
-  IsDeleted: Boolean;
 begin
-  IsDeleted := false;
+  var IsDeleted := false;
   if Artist.Length > 0 then begin
     if JukeboxDb <> nil then begin
       const theSongList = JukeboxDb.RetrieveSongs(Artist, "");
@@ -1724,10 +1711,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.DeleteAlbum(Album: String): Boolean;
-var
-  AlbumDeleted: Boolean;
 begin
-  AlbumDeleted := false;
+  var AlbumDeleted := false;
   const ContainsDoubleDash = Album.Contains("--");
   if ContainsDoubleDash then begin
     const NameComponents = Album.Split("--");
@@ -1778,10 +1763,8 @@ end;
 //*******************************************************************************
 
 method Jukebox.DeletePlaylist(PlaylistName: String): Boolean;
-var
-  IsDeleted: Boolean;
 begin
-  IsDeleted := false;
+  var IsDeleted := false;
   if JukeboxDb <> nil then begin
     const ObjectName = JukeboxDb.GetPlaylist(PlaylistName);
     if ObjectName <> nil then begin
@@ -1815,28 +1798,26 @@ begin
     end;
   end;
 
-  result := IsDeleted;
+  exit IsDeleted;
 end;
 
 //*******************************************************************************
 
 method Jukebox.ImportAlbumArt;
 var
-  FileImportCount: Integer;
-  HaveContainer: Boolean;
   FileRead: Boolean;
   FileContents: array of Byte;
 begin
   if JukeboxDb <> nil then begin
     if JukeboxDb.IsOpen then begin
-      FileImportCount := 0;
+      var FileImportCount := 0;
       const DirListing = Utils.ListFilesInDirectory(AlbumArtImportDirPath);
       if DirListing.Count = 0 then begin
         writeLn("no album art found");
         exit;
       end;
 
-      HaveContainer := false;
+      var HaveContainer := false;
 
       if not StorageSystem.HasContainer(AlbumArtContainer) then
         HaveContainer :=
