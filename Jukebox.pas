@@ -849,16 +849,13 @@ end;
 method Jukebox.DownloadSong(Song: SongMetadata): Boolean;
 begin
   if ExitRequested then begin
-    result := false;
-    exit;
+    exit false;
   end;
 
   const FilePath = SongPathInPlaylist(Song);
-  //downloadStartTime := time.time()
   const SongBytesRetrieved = RetrieveFile(Song.Fm, SongPlayDirPath);
   if ExitRequested then begin
-    result := false;
-    exit;
+    exit false;
   end;
 
   if DebugPrint then begin
@@ -866,13 +863,11 @@ begin
   end;
 
   if SongBytesRetrieved > 0 then begin
-    //downloadEndTime := time.time()
-    //downloadElapsedTime := downloadEndTime - downloadStartTime
-    //cumulativeDownloadTime += downloadElapsedTime
     CumulativeDownloadBytes := CumulativeDownloadBytes + SongBytesRetrieved;
 
     // are we checking data integrity?
-    // if so, verify that the storage system retrieved the same length that has been stored
+    // if so, verify that the storage system retrieved the same length that has
+    // been stored
     if JukeboxOptions.CheckDataIntegrity then begin
       if DebugPrint then begin
         writeLn("verifying data integrity");
@@ -880,14 +875,12 @@ begin
 
       if SongBytesRetrieved <> Song.Fm.StoredFileSize then begin
         writeLn("error: file size check failed for '{0}'", FilePath);
-        result := false;
-        exit;
+        exit false;
       end;
     end;
 
     if CheckFileIntegrity(Song) then begin
-      result := true;
-      exit;
+      exit true;
     end
     else begin
       // we retrieved the file, but it failed our integrity check
@@ -898,7 +891,7 @@ begin
     end;
   end;
 
-  result := false;
+  exit false;
 end;
 
 //*******************************************************************************
