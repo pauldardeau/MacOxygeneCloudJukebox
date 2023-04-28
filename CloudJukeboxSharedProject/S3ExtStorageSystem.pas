@@ -100,7 +100,7 @@ begin
   end;
 
   ListContainers := ListAccountContainers();
-  result := true;
+  exit true;
 end;
 
 //*******************************************************************************
@@ -143,21 +143,21 @@ begin
     Utils.DeleteFileIfExists(RunScript);
   end;
 
-  result := ListOfContainers;
+  exit ListOfContainers;
 end;
 
 //*******************************************************************************
 
 method S3ExtStorageSystem.GetContainerNames: ImmutableList<String>;
 begin
-  result := ListContainers;
+  exit ListContainers;
 end;
 
 //*******************************************************************************
 
 method S3ExtStorageSystem.HasContainer(ContainerName: String): Boolean;
 begin
-  result := ListContainers.Contains(ContainerName);
+  exit ListContainers.Contains(ContainerName);
 end;
 
 //*******************************************************************************
@@ -196,7 +196,7 @@ begin
     Utils.DeleteFileIfExists(RunScript);
   end;
 
-  result := ContainerCreated;
+  exit ContainerCreated;
 end;
 
 //*******************************************************************************
@@ -227,7 +227,7 @@ begin
     Utils.DeleteFileIfExists(RunScript);
   end;
 
-  result := ContainerDeleted;
+  exit ContainerDeleted;
 end;
 
 //*******************************************************************************
@@ -263,7 +263,7 @@ begin
     Utils.DeleteFileIfExists(RunScript);
   end;
 
-  result := ListObjects;
+  exit ListObjects;
 end;
 
 //*******************************************************************************
@@ -301,7 +301,7 @@ begin
     Utils.DeleteFileIfExists(RunScript);
   end;
 
-  result := Success;
+  exit Success;
 end;
 
 //*******************************************************************************
@@ -334,7 +334,7 @@ begin
     writeLn("error: PutObject not able to write to tmp file");
   end;
 
-  result := ObjectAdded;
+  exit ObjectAdded;
 end;
 
 //*******************************************************************************
@@ -428,7 +428,7 @@ begin
     Utils.DeleteFileIfExists(RunScript);
   end;
 
-  result := ObjectAdded;
+  exit ObjectAdded;
 end;
 
 //*******************************************************************************
@@ -462,7 +462,7 @@ begin
     Utils.DeleteFileIfExists(RunScript);
   end;
 
-  result := ObjectDeleted;
+  exit ObjectDeleted;
 end;
 
 //*******************************************************************************
@@ -505,10 +505,10 @@ begin
   end;
 
   if Success and Utils.FileExists(LocalFilePath) then begin
-    result := Utils.GetFileSize(LocalFilePath);
+    exit Utils.GetFileSize(LocalFilePath);
   end
   else begin
-    result := 0;
+    exit 0;
   end;
 end;
 
@@ -538,10 +538,9 @@ end;
 
 method S3ExtStorageSystem.RunProgram(ProgramPath: String;
                                      ListOutputLines: List<String>): Boolean;
-var
-  StdOut: String;
-  StdErr: String;
 begin
+  var StdOut := "";
+  var StdErr := "";
   var Success := false;
 
   if not Utils.FileExists(ProgramPath) then begin
@@ -602,70 +601,15 @@ begin
     end;
   end;
 
-  result := Success;
+  exit Success;
 end;
 
 //*****************************************************************************
 
 method S3ExtStorageSystem.RunProgram(ProgramPath: String;
                                      out StdOut: String): Boolean;
-var
-  StdErr: String;
 begin
-   var success := false;
-
-   if not Utils.FileExists(ProgramPath) then begin
-      writeLn("RunProgram: error '{0}' does not exist", ProgramPath);
-      exit false;
-   end;
-
-   var is_shell_script := false;
-   var ExecutablePath := ProgramPath;
-
-   if ProgramPath.EndsWith(".sh") then begin
-      const FileLines = Utils.FileReadTextLines(ProgramPath);
-      if FileLines.Count = 0 then begin
-         writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
-         exit false;
-      end;
-      const FirstLine = FileLines[0];
-      if FirstLine.StartsWith("#!") then begin
-         const LineLength = FirstLine.Length;
-         ExecutablePath := FirstLine.Substring(2, LineLength-2);
-      end
-      else begin
-         ExecutablePath := "/bin/sh";
-      end;
-      is_shell_script := true;
-   end;
-
-   var program_args := new List<String>;
-   var ExitCode := 0;
-
-   if is_shell_script then begin
-      program_args.Add(ProgramPath);
-   end;
-
-   if Utils.ExecuteProgram(ExecutablePath,
-                           program_args,
-                           var ExitCode,
-                           out StdOut,
-                           out StdErr) then begin
-      if ExitCode = 0 then begin
-         success := true;
-      end;
-   end;
-
-   result := success;
-end;
-
-//*****************************************************************************
-
-method S3ExtStorageSystem.RunProgram(ProgramPath: String): Boolean;
-var
-  StdOut: String;
-  StdErr: String;
-begin
+  var StdErr := "";
   var Success := false;
 
   if not Utils.FileExists(ProgramPath) then begin
@@ -710,7 +654,60 @@ begin
     end;
   end;
 
-  result := Success;
+  exit Success;
+end;
+
+//*****************************************************************************
+
+method S3ExtStorageSystem.RunProgram(ProgramPath: String): Boolean;
+begin
+  var StdOut := "";
+  var StdErr := "";
+  var Success := false;
+
+  if not Utils.FileExists(ProgramPath) then begin
+    writeLn("RunProgram: error '{0}' does not exist", ProgramPath);
+    exit false;
+  end;
+
+  var IsShellScript := false;
+  var ExecutablePath := ProgramPath;
+
+  if ProgramPath.EndsWith(".sh") then begin
+    const FileLines = Utils.FileReadTextLines(ProgramPath);
+    if FileLines.Count = 0 then begin
+      writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
+      exit false;
+    end;
+    const FirstLine = FileLines[0];
+    if FirstLine.StartsWith("#!") then begin
+      const LineLength = FirstLine.Length;
+      ExecutablePath := FirstLine.Substring(2, LineLength-2);
+    end
+    else begin
+      ExecutablePath := "/bin/sh";
+    end;
+    IsShellScript := true;
+  end;
+
+  var ProgramArgs := new List<String>;
+  var ExitCode := 0;
+
+  if IsShellScript then begin
+    ProgramArgs.Add(ProgramPath);
+  end;
+
+  if Utils.ExecuteProgram(ExecutablePath,
+                          ProgramArgs,
+                          var ExitCode,
+                          out StdOut,
+                          out StdErr) then begin
+    if ExitCode = 0 then begin
+      Success := true;
+    end;
+  end;
+
+  exit Success;
 end;
 
 //*****************************************************************************
@@ -719,39 +716,39 @@ method S3ExtStorageSystem.PrepareRunScript(ScriptTemplate: String;
                                            RunScript: String;
                                            Kvp: KeyValuePairs): Boolean;
 begin
-   Utils.DeleteFileIfExists(RunScript);
+  Utils.DeleteFileIfExists(RunScript);
 
-   if not Utils.FileCopy(Utils.PathJoin(ScriptDirectory, ScriptTemplate), RunScript) then begin
-      exit false;
-   end;
+  if not Utils.FileCopy(Utils.PathJoin(ScriptDirectory, ScriptTemplate), RunScript) then begin
+    exit false;
+  end;
 
-   //if not Utils.FileSetPermissions(RunScript, 7, 0, 0) then begin
-   //   exit false;
-   //end;
+  //if not Utils.FileSetPermissions(RunScript, 7, 0, 0) then begin
+  //   exit false;
+  //end;
 
-   var FileText := Utils.FileReadAllText(RunScript);
-   if FileText.Length = 0 then begin
-      exit false;
-   end;
+  var FileText := Utils.FileReadAllText(RunScript);
+  if FileText.Length = 0 then begin
+    exit false;
+  end;
 
-   const kvpKeys = Kvp.GetKeys();
-   for each key in kvpKeys do begin
-      const value = Kvp.GetValue(key);
-      FileText := FileText.Replace(key, value);
-   end;
+  const kvpKeys = Kvp.GetKeys();
+  for each key in kvpKeys do begin
+    const value = Kvp.GetValue(key);
+    FileText := FileText.Replace(key, value);
+  end;
 
-   if not Utils.FileWriteAllText(RunScript, FileText) then begin
-      exit false;
-   end;
+  if not Utils.FileWriteAllText(RunScript, FileText) then begin
+    exit false;
+  end;
 
-   result := true;
+  exit true;
 end;
 
 //*****************************************************************************
 
 method S3ExtStorageSystem.RunScriptNameForTemplate(ScriptTemplate: String): String;
 begin
-  result := runScriptNamePrefix + ScriptTemplate;
+  exit runScriptNamePrefix + ScriptTemplate;
 end;
 
 //*****************************************************************************

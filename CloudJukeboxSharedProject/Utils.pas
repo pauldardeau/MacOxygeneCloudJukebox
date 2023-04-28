@@ -65,7 +65,7 @@ type
         end;
         listFiles.Add(strippedFile);
       end;
-      result := listFiles;
+      exit listFiles;
     end;
 
 //*******************************************************************************
@@ -82,7 +82,7 @@ type
         end;
         listSubdirs.Add(strippedDir);
       end;
-      result := listSubdirs;
+      exit listSubdirs;
     end;
 
 //*******************************************************************************
@@ -150,7 +150,7 @@ type
         end;
       end;
 
-      result := (Root, Ext);
+      exit (Root, Ext);
     end;
 
 //*******************************************************************************
@@ -386,7 +386,7 @@ type
         writeLn("error: Md5ForFile - unable to retrieve platform config values");
       end;
 
-      result := '';
+      exit '';
     end;
 
 //*******************************************************************************

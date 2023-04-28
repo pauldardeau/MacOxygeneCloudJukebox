@@ -56,9 +56,9 @@ end;
 method FSStorageSystem.Enter: Boolean;
 begin
   if not Utils.DirectoryExists(RootDir) then
-    result := Utils.CreateDirectory(RootDir)
+    exit Utils.CreateDirectory(RootDir)
   else
-    result := true;
+    exit true;
 end;
 
 //*******************************************************************************
@@ -72,33 +72,29 @@ end;
 
 method FSStorageSystem.ListAccountContainers: List<String>;
 begin
-  result := Utils.ListDirsInDirectory(RootDir);
+  exit Utils.ListDirsInDirectory(RootDir);
 end;
 
 //*******************************************************************************
 
 method FSStorageSystem.GetContainerNames: ImmutableList<String>;
 begin
-  result := ListAccountContainers;
+  exit ListAccountContainers;
 end;
 
 //*******************************************************************************
 
 method FSStorageSystem.HasContainer(ContainerName: String): Boolean;
-var
-  ContainerFound: Boolean;
 begin
-  ContainerFound := false;
   const ListContainers = ListAccountContainers();
   if ListContainers.Count > 0 then begin
     for each Container: String in ListContainers do begin
       if ContainerName = Container then begin
-        ContainerFound := true;
-        break;
+        exit true;
       end;
     end;
   end;
-  result := ContainerFound;
+  exit false;
 end;
 
 //*******************************************************************************
@@ -112,7 +108,7 @@ begin
       writeLn("container created: '{0}'", ContainerName);
     end;
   end;
-  result := ContainerCreated;
+  exit ContainerCreated;
 end;
 
 //*******************************************************************************
@@ -126,21 +122,20 @@ begin
       writeLn("container deleted: '{0}'", ContainerName);
     end;
   end;
-  result := ContainerDeleted;
+  exit ContainerDeleted;
 end;
 
 //*******************************************************************************
 
 method FSStorageSystem.ListContainerContents(ContainerName: String): ImmutableList<String>;
-var
-  ContainerContents: ImmutableList<String>;
 begin
+  var ContainerContents: ImmutableList<String>;
   const ContainerDir = Utils.PathJoin(RootDir, ContainerName);
   if Utils.DirectoryExists(ContainerDir) then
     ContainerContents := Utils.ListFilesInDirectory(ContainerDir)
   else
     ContainerContents := new ImmutableList<String>;
-  result := ContainerContents;
+  exit ContainerContents;
 end;
 
 //*******************************************************************************
@@ -160,7 +155,7 @@ begin
       end;
     end;
   end;
-  result := RetrievedMetadata;
+  exit RetrievedMetadata;
 end;
 
 //*******************************************************************************
@@ -217,7 +212,7 @@ begin
       end;
     end;
   end;
-  result := ObjectAdded;
+  exit ObjectAdded;
 end;
 
 //*******************************************************************************
@@ -271,7 +266,7 @@ begin
       end;
     end;
   end;
-  result := ObjectAdded;
+  exit ObjectAdded;
 end;
 
 //*******************************************************************************
@@ -312,7 +307,7 @@ begin
       writeLn("cannot delete object, container name or object name is missing");
     end;
   end;
-  result := ObjectDeleted;
+  exit ObjectDeleted;
 end;
 
 //*******************************************************************************
@@ -345,7 +340,7 @@ begin
       end;
     end;
   end;
-  result := BytesRetrieved;
+  exit BytesRetrieved;
 end;
 
 //*******************************************************************************

@@ -51,7 +51,7 @@ end;
 
 method PropertyList.Get(aIndex: Integer): PropertyValue;
 begin
-  result := ListProps.Item[aIndex];
+  exit ListProps.Item[aIndex];
 end;
 
 //*******************************************************************************
@@ -60,9 +60,9 @@ method PropertyList.GetIntValue(aIndex: Integer): Integer;
 begin
   var pv := Get(aIndex);
   if pv <> nil then
-    result := pv.GetIntValue
+    exit pv.GetIntValue
   else
-    result := 0;
+    exit 0;
 end;
 
 //*******************************************************************************
@@ -71,9 +71,9 @@ method PropertyList.GetLongValue(aIndex: Integer): Int64;
 begin
   var pv := Get(aIndex);
   if pv <> nil then
-    result := pv.GetLongValue
+    exit pv.GetLongValue
   else
-    result := 0;
+    exit 0;
 end;
 
 //*******************************************************************************
@@ -82,9 +82,9 @@ method PropertyList.GetULongValue(aIndex: Integer): UInt64;
 begin
   var pv := Get(aIndex);
   if pv <> nil then
-    result := pv.GetULongValue
+    exit pv.GetULongValue
   else
-    result := 0;
+    exit 0;
 end;
 
 //*******************************************************************************
@@ -93,9 +93,9 @@ method PropertyList.GetBoolValue(aIndex: Integer): Boolean;
 begin
   var pv := Get(aIndex);
   if pv <> nil then
-    result := pv.GetBoolValue
+    exit pv.GetBoolValue
   else
-    result := false;
+    exit false;
 end;
 
 //*******************************************************************************
@@ -104,9 +104,9 @@ method PropertyList.GetStringValue(aIndex: Integer): String;
 begin
   var pv := Get(aIndex);
   if pv <> nil then
-    result := pv.GetStringValue
+    exit pv.GetStringValue
   else
-    result := "";
+    exit "";
 end;
 
 //*******************************************************************************
@@ -115,16 +115,16 @@ method PropertyList.GetDoubleValue(aIndex: Integer): Real;
 begin
   var pv := Get(aIndex);
   if pv <> nil then
-    result := pv.GetDoubleValue
+    exit pv.GetDoubleValue
   else
-    result := 0.0;
+    exit 0.0;
 end;
 
 //*******************************************************************************
 
 method PropertyList.Count(): Integer;
 begin
-  result := ListProps.Count;
+  exit ListProps.Count;
 end;
 
 //*******************************************************************************

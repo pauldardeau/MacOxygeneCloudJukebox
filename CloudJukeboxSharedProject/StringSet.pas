@@ -14,7 +14,7 @@ type
     method Clear;
     method Contains(Value: String): Boolean;
     method GetValues(): ImmutableList<String>;
-    method Count():Integer;
+    method Count(): Integer;
     method Append(aSet: StringSet);
     method ToString(): String;
   end;
@@ -49,21 +49,21 @@ end;
 
 method StringSet.Contains(Value: String): Boolean;
 begin
-  result := MapStrings.ContainsKey(Value);
+  exit MapStrings.ContainsKey(Value);
 end;
 
 //*******************************************************************************
 
 method StringSet.GetValues(): ImmutableList<String>;
 begin
-  result := MapStrings.Keys;
+  exit MapStrings.Keys;
 end;
 
 //*******************************************************************************
 
-method StringSet.Count():Integer;
+method StringSet.Count(): Integer;
 begin
-  result := MapStrings.Count;
+  exit MapStrings.Count;
 end;
 
 //*******************************************************************************

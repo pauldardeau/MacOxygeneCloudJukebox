@@ -137,9 +137,9 @@ begin
   end;
 
   if DebugMode then begin
-    writeLn("endpoint_url={0}", theEndpointUrl);
+    writeLn("{0}={1}", S3_ENDPOINT_URL, theEndpointUrl);
     if (theRegion.Length > 0) then begin
-      writeLn("region={0}", theRegion);
+      writeLn("{0}={1}", S3_REGION, theRegion);
     end;
   end;
 
@@ -480,6 +480,7 @@ begin
     if DebugMode then begin
       writeLn("using storage system type {0}", StorageType);
     end;
+
     var ContainerPrefix := "";
     const CredsFile = StorageType + CREDS_FILE_SUFFIX;
     Creds := new PropertySet;

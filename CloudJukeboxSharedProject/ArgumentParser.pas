@@ -65,7 +65,7 @@ begin
   if OptionAdded then
     DictAllReservedWords[O] := OptionType;
 
-  result := OptionAdded;
+  exit OptionAdded;
 end;
 
 //*******************************************************************************
@@ -197,7 +197,7 @@ begin
     end;
   end;
 
-  result := ps;
+  exit ps;
 end;
 
 //*******************************************************************************

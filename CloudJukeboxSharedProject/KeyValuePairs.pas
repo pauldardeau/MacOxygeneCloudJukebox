@@ -49,28 +49,28 @@ end;
 
 method KeyValuePairs.ContainsKey(Key: String): Boolean;
 begin
-  result := DictKeyValues.ContainsKey(Key);
+  exit DictKeyValues.ContainsKey(Key);
 end;
 
 //*****************************************************************************
 
 method KeyValuePairs.Count(): Integer;
 begin
-  result := DictKeyValues.Count;
+  exit DictKeyValues.Count;
 end;
 
 //*****************************************************************************
 
 method KeyValuePairs.GetValue(Key: String): String;
 begin
-  result := DictKeyValues[Key];
+  exit DictKeyValues[Key];
 end;
 
 //*****************************************************************************
 
 method KeyValuePairs.GetKeys(): ImmutableList<String>;
 begin
-  result := DictKeyValues.Keys;
+  exit DictKeyValues.Keys;
 end;
 
 //*****************************************************************************

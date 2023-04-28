@@ -32,7 +32,7 @@ type
     method GetBoolValue(PropName: String): Boolean;
     method GetStringValue(PropName: String): String;
     method GetDoubleValue(PropName: String): Real;
-    method Count():Integer;
+    method Count(): Integer;
     method ToString: String;
     method PopulateFromString(EncodedPropertySet: String): Boolean;
     method WriteToFile(FileName: String): Boolean;
@@ -69,21 +69,21 @@ end;
 
 method PropertySet.Contains(PropName: String): Boolean;
 begin
-  result := MapProps.ContainsKey(PropName);
+  exit MapProps.ContainsKey(PropName);
 end;
 
 //*******************************************************************************
 
 method PropertySet.GetKeys(): ImmutableList<String>;
 begin
-  result := MapProps.Keys;
+  exit MapProps.Keys;
 end;
 
 //*******************************************************************************
 
 method PropertySet.Get(PropName: String): PropertyValue;
 begin
-  result := MapProps.Item[PropName];
+  exit MapProps.Item[PropName];
 end;
 
 //*******************************************************************************
@@ -92,9 +92,9 @@ method PropertySet.GetIntValue(PropName: String): Integer;
 begin
   var pv := Get(PropName);
   if pv <> nil then
-    result := pv.GetIntValue
+    exit pv.GetIntValue
   else
-    result := 0;
+    exit 0;
 end;
 
 //*******************************************************************************
@@ -103,9 +103,9 @@ method PropertySet.GetLongValue(PropName: String): Int64;
 begin
   var pv := Get(PropName);
   if pv <> nil then
-    result := pv.GetLongValue
+    exit pv.GetLongValue
   else
-    result := 0;
+    exit 0;
 end;
 
 //*******************************************************************************
@@ -114,9 +114,9 @@ method PropertySet.GetULongValue(PropName: String): UInt64;
 begin
   var pv := Get(PropName);
   if pv <> nil then
-    result := pv.GetULongValue
+    exit pv.GetULongValue
   else
-    result := 0;
+    exit 0;
 end;
 
 //*******************************************************************************
@@ -125,9 +125,9 @@ method PropertySet.GetBoolValue(PropName: String): Boolean;
 begin
   var pv := Get(PropName);
   if pv <> nil then
-    result := pv.GetBoolValue
+    exit pv.GetBoolValue
   else
-    result := false;
+    exit false;
 end;
 
 //*******************************************************************************
@@ -136,9 +136,9 @@ method PropertySet.GetStringValue(PropName: String): String;
 begin
   var pv := Get(PropName);
   if pv <> nil then
-    result := pv.GetStringValue
+    exit pv.GetStringValue
   else
-    result := "";
+    exit "";
 end;
 
 //*******************************************************************************
@@ -147,16 +147,16 @@ method PropertySet.GetDoubleValue(PropName: String): Real;
 begin
   var pv := Get(PropName);
   if pv <> nil then
-    result := pv.GetDoubleValue
+    exit pv.GetDoubleValue
   else
-    result := 0.0;
+    exit 0.0;
 end;
 
 //*******************************************************************************
 
-method PropertySet.Count():Integer;
+method PropertySet.Count(): Integer;
 begin
-  result := MapProps.Count;
+  exit MapProps.Count;
 end;
 
 //*******************************************************************************
@@ -199,27 +199,26 @@ begin
     end;
   end;
 
-  result := Encoded.ToString;
+  exit Encoded.ToString;
 end;
 
 //*******************************************************************************
 
 method PropertySet.WriteToFile(FileName: String): Boolean;
 begin
-  result := Utils.FileWriteAllText(FileName, ToString());
+  exit Utils.FileWriteAllText(FileName, ToString());
 end;
 
 //*******************************************************************************
 
 method PropertySet.PopulateFromString(EncodedPropertySet: String): Boolean;
 var
-  Success: Boolean;
   IntValue: Int32;
   LongValue: Int64;
   ULongValue: Int64;
   DoubleValue: Real;
 begin
-  Success := false;
+  var Success := false;
 
   if EncodedPropertySet <> nil then begin
     if EncodedPropertySet.Length > 0 then begin
@@ -300,14 +299,14 @@ begin
     end;
   end;
 
-  result := Success;
+  exit Success;
 end;
 
 //*******************************************************************************
 
 method PropertySet.ReadFromFile(FileName: String): Boolean;
 begin
-  result := PopulateFromString(Utils.FileReadAllText(FileName));
+  exit PopulateFromString(Utils.FileReadAllText(FileName));
 end;
 
 //*******************************************************************************

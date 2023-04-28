@@ -147,91 +147,91 @@ end;
 
 method PropertyValue.IsInt(): Boolean;
 begin
-  result := DataType = TYPE_INT;
+  exit DataType = TYPE_INT;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsLong(): Boolean;
 begin
-  result := DataType = TYPE_LONG;
+  exit DataType = TYPE_LONG;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsULong(): Boolean;
 begin
-  result := DataType = TYPE_ULONG;
+  exit DataType = TYPE_ULONG;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsBool(): Boolean;
 begin
-  result := DataType = TYPE_BOOL;
+  exit DataType = TYPE_BOOL;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsString(): Boolean;
 begin
-  result := DataType = TYPE_STRING;
+  exit DataType = TYPE_STRING;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsDouble(): Boolean;
 begin
-  result := DataType = TYPE_DOUBLE;
+  exit DataType = TYPE_DOUBLE;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.IsNull(): Boolean;
 begin
-  result := DataType = TYPE_NULL;
+  exit DataType = TYPE_NULL;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.GetIntValue(): Integer;
 begin
-  result := IntValue;
+  exit IntValue;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.GetLongValue(): Int64;
 begin
-  result := LongValue;
+  exit LongValue;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.GetULongValue(): UInt64;
 begin
-  result := ULongValue;
+  exit ULongValue;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.GetBoolValue(): Boolean;
 begin
-  result := BoolValue;
+  exit BoolValue;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.GetStringValue(): String;
 begin
-  result := StringValue;
+  exit StringValue;
 end;
 
 //*******************************************************************************
 
 method PropertyValue.GetDoubleValue(): Real;
 begin
-  result := DoubleValue;
+  exit DoubleValue;
 end;
 
 //*******************************************************************************
