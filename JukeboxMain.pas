@@ -138,7 +138,7 @@ begin
 
   if DebugMode then begin
     writeLn("endpoint_url={0}", theEndpointUrl);
-    if (theRegion.Length() > 0) then begin
+    if (theRegion.Length > 0) then begin
       writeLn("region={0}", theRegion);
     end;
   end;
