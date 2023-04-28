@@ -112,7 +112,7 @@ begin
       OpenSuccess := true;
     end;
   end;
-  result := OpenSuccess;
+  exit OpenSuccess;
 end;
 
 //*******************************************************************************
@@ -129,7 +129,7 @@ begin
     DbConnection := nil;
     DidClose := true;
   end;
-  result := DidClose;
+  exit DidClose;
 end;
 
 //*******************************************************************************
@@ -170,10 +170,8 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.PrepareStatement(SqlStatement: String): ^libsqlite3.sqlite3_stmt;
-var
-  Statement: ^libsqlite3.sqlite3_stmt;
 begin
-  Statement := nil;
+  var Statement: ^libsqlite3.sqlite3_stmt := nil;
   if DbConnection <> nil then begin
     //const rawSqlStatement = MakeCStringFromString(SqlStatement);
     const rawSqlStatement = Encoding.UTF8.GetBytes(SqlStatement);
@@ -184,14 +182,13 @@ begin
                                             @Statement,
                                             nil);
     if rc = libsqlite3.SQLITE_OK then begin
-      result := Statement;
-      exit;
+      exit Statement;
     end
     else begin
       writeLn("error: prepare of sql failed: {0}", SqlStatement);
     end;
   end;
-  result := nil;
+  exit nil;
 end;
 
 //*******************************************************************************
@@ -205,7 +202,7 @@ begin
       DidSucceed := true;
     end;
   end;
-  result := DidSucceed;
+  exit DidSucceed;
 end;
 
 //*******************************************************************************
@@ -219,15 +216,13 @@ begin
   if DbConnection = nil then begin
     RowsAffectedCount := 0;
     writeLn("error: no database connection");
-    result := false;
-    exit;
+    exit false;
   end;
 
   var Stmt := PrepareStatement(SqlStatement);
   if Stmt = nil then begin
     RowsAffectedCount := 0;
-    result := false;
-    exit;
+    exit false;
   end;
 
   try
@@ -238,8 +233,7 @@ begin
               " of variables ({0}) (executeUpdate)",
               SqlStatement);
       RowsAffectedCount := 0;
-      result := false;
-      exit;
+      exit false;
     end;
 
     rc := libsqlite3.sqlite3_step(Stmt);
@@ -274,7 +268,7 @@ begin
     RowsAffectedCount := 0;
   end;
 
-  result := SqlSuccess;
+  exit SqlSuccess;
 end;
 
 //*******************************************************************************
@@ -357,15 +351,13 @@ begin
   if DbConnection = nil then begin
     RowsAffectedCount := 0;
     writeLn("error: no database connection");
-    result := false;
-    exit;
+    exit false;
   end;
 
   var Stmt := PrepareStatement(SqlStatement);
   if Stmt = nil then begin
     RowsAffectedCount := 0;
-    result := false;
-    exit;
+    exit false;
   end;
 
   try
@@ -376,8 +368,7 @@ begin
               " of variables ({0}) (executeUpdate)",
               SqlStatement);
       RowsAffectedCount := 0;
-      result := false;
-      exit;
+      exit false;
     end;
 
     var argIndex := 0;
@@ -412,8 +403,7 @@ begin
 
       if rc <> libsqlite3.SQLITE_OK then begin
         writeLn("Error: unable to bind argument {0}, rc={1}", argIndex, rc);
-        result := false;
-        exit;
+        exit false;
       end;
     end;
 
@@ -449,7 +439,7 @@ begin
     RowsAffectedCount := 0;
   end;
 
-  result := SqlSuccess;
+  exit SqlSuccess;
 end;
 
 //*******************************************************************************
@@ -460,11 +450,11 @@ var
 begin
   if InTransaction then begin
     writeLn("error: BeginTransaction called when already in transaction");
-    result := false;
+    exit false;
   end
   else begin
     InTransaction := true;
-    result := ExecuteUpdate("BEGIN EXCLUSIVE TRANSACTION;", var RowsAffected);
+    exit ExecuteUpdate("BEGIN EXCLUSIVE TRANSACTION;", var RowsAffected);
   end;
 end;
 
@@ -476,11 +466,11 @@ var
 begin
   if InTransaction then begin
     writeLn("error: BeginDeferredTransaction called when already in transaction");
-    result := false;
+    exit false;
   end
   else begin
     InTransaction := true;
-    result := ExecuteUpdate("BEGIN DEFERRED TRANSACTION;", var RowsAffected);
+    exit ExecuteUpdate("BEGIN DEFERRED TRANSACTION;", var RowsAffected);
   end;
 end;
 
@@ -492,7 +482,7 @@ var
 begin
   if not InTransaction then begin
     writeLn("error: Rollback called when not in transaction");
-    result := false;
+    exit false;
   end
   else begin
     result := ExecuteUpdate("ROLLBACK TRANSACTION;", var RowsAffected);
@@ -508,7 +498,7 @@ var
 begin
   if not InTransaction then begin
     writeLn("error: Commit called when not in transaction");
-    result := false;
+    exit false;
   end
   else begin
     result := ExecuteUpdate("COMMIT TRANSACTION;", var RowsAffected);
@@ -525,8 +515,7 @@ begin
     var Stmt := PrepareStatement(SqlStatement);
     if Stmt = nil then begin
       writeLn("prepare of statement failed: {0}", SqlStatement);
-      result := false;
-      exit;
+      exit false;
     end;
 
     try
@@ -541,7 +530,7 @@ begin
       libsqlite3.sqlite3_finalize(Stmt);
     end;
   end;
-  result := DidSucceed;
+  exit DidSucceed;
 end;
 
 //*******************************************************************************
@@ -619,8 +608,7 @@ begin
                      "WHERE type='table' AND name='song'";
     var Stmt := PrepareStatement(SqlQuery);
     if Stmt = nil then begin
-      result := false;
-      exit;
+      exit false;
     end;
 
     try
@@ -635,16 +623,14 @@ begin
     end;
   end;
 
-  result := HaveTablesInDb;
+  exit HaveTablesInDb;
 end;
 
 //*******************************************************************************
 
 method JukeboxDB.GetPlaylist(PlaylistName: String): String;
-var
-  PlObject: String;
 begin
-  PlObject := nil;
+  var PlObject: String := nil;
 
   if PlaylistName.Length > 0 then begin
     const SqlQuery = "SELECT playlist_uid " +
@@ -652,8 +638,7 @@ begin
                      "WHERE playlist_name = ?";
     var Stmt := PrepareStatement(SqlQuery);
     if Stmt = nil then begin
-      result := nil;
-      exit;
+      exit nil;
     end;
 
     try
@@ -667,20 +652,18 @@ begin
       libsqlite3.sqlite3_finalize(Stmt);
     end;
   end;
-  result := PlObject;
+  exit PlObject;
 end;
 
 //*******************************************************************************
 
 method JukeboxDB.SongsForQueryResults(Statement: ^libsqlite3.sqlite3_stmt): List<SongMetadata>;
 var
-  ResultSongs: List<SongMetadata>;
-  rc: Integer;
   song: SongMetadata;
 begin
-  ResultSongs := new List<SongMetadata>();
+  var ResultSongs := new List<SongMetadata>();
 
-  rc := libsqlite3.sqlite3_step(Statement);
+  var rc := libsqlite3.sqlite3_step(Statement);
 
   while (rc <> libsqlite3.SQLITE_DONE) and (rc <> libsqlite3.SQLITE_OK) do begin
     song := new SongMetadata();
@@ -703,16 +686,14 @@ begin
     rc := libsqlite3.sqlite3_step(Statement);
   end;
 
-  result := ResultSongs;
+  exit ResultSongs;
 end;
 
 //*******************************************************************************
 
 method JukeboxDB.RetrieveSong(SongUid: String): SongMetadata;
-var
-  Song: SongMetadata;
 begin
-  Song := nil;
+  var Song: SongMetadata := nil;
 
   if DbConnection <> nil then begin
     if PsRetrieveSong = nil then begin
@@ -735,8 +716,7 @@ begin
       var Stmt := PrepareStatement(SqlQuery);
       if Stmt = nil then begin
         writeLn("error: unable to prepare statement");
-        result := nil;
-        exit;
+        exit nil;
       end
       else begin
         PsRetrieveSong := Stmt;
@@ -760,7 +740,7 @@ begin
       const rc1 = libsqlite3.sqlite3_clear_bindings(PsRetrieveSong);
     end;
   end;
-  result := Song;
+  exit Song;
 end;
 
 //*******************************************************************************
@@ -769,18 +749,16 @@ method JukeboxDB.InsertPlaylist(PlUid: String;
                                 PlName: String;
                                 PlDesc: String): Boolean;
 var
-  InsertSuccess: Boolean;
   RowsAffected: Int32;
 begin
-  InsertSuccess := false;
+  var InsertSuccess := false;
 
   if (DbConnection <> nil) and
      (PlUid.Length > 0) and
      (PlName.Length > 0) then begin
 
     if not BeginTransaction then begin
-      result := false;
-      exit;
+      exit false;
     end;
 
     const SqlStatement = "INSERT INTO playlist VALUES (?,?,?)";
@@ -799,22 +777,20 @@ begin
     end;
   end;
 
-  result := InsertSuccess;
+  exit InsertSuccess;
 end;
 
 //*******************************************************************************
 
 method JukeboxDB.DeletePlaylist(PlName: String): Boolean;
 var
-  DeleteSuccess: Boolean;
   RowsAffected: Int32;
 begin
-  DeleteSuccess := false;
+  var DeleteSuccess := false;
 
   if (DbConnection <> nil) and (PlName.Length > 0) then begin
     if not BeginTransaction then begin
-      result := false;
-      exit;
+      exit false;
     end;
 
     const SqlQuery = "DELETE FROM playlist WHERE playlist_name = ?";
@@ -831,22 +807,20 @@ begin
     end;
   end;
 
-  result := DeleteSuccess;
+  exit DeleteSuccess;
 end;
 
 //*******************************************************************************
 
 method JukeboxDB.InsertSong(Song: SongMetadata): Boolean;
 var
-  InsertSuccess: Boolean;
   RowsAffected: Int32;
 begin
-  InsertSuccess := false;
+  var InsertSuccess := false;
 
   if DbConnection <> nil then begin
     if not BeginTransaction() then begin
-      result := false;
-      exit;
+      exit false;
     end;
 
     var Args := new PropertyList();
@@ -876,22 +850,20 @@ begin
     end;
   end;
 
-  result := InsertSuccess;
+  exit InsertSuccess;
 end;
 
 //*******************************************************************************
 
 method JukeboxDB.UpdateSong(Song: SongMetadata): Boolean;
 var
-  UpdateSuccess: Boolean;
   RowsAffected: Int32;
 begin
-  UpdateSuccess := false;
+  var UpdateSuccess := false;
 
   if (DbConnection <> nil) and (Song.Fm.FileUid.Length > 0) then begin
     if not BeginTransaction() then begin
-      result := false;
-      exit;
+      exit false;
     end;
 
     var Args := new PropertyList();
@@ -936,7 +908,7 @@ begin
     end;
   end;
 
-  result := UpdateSuccess;
+  exit UpdateSuccess;
 end;
 
 //*******************************************************************************
@@ -946,15 +918,15 @@ begin
   var DbSong := RetrieveSong(Song.Fm.FileUid);
   if DbSong <> nil then begin
     if Song <> DbSong then begin
-      result := UpdateSong(Song);
+      exit UpdateSong(Song);
     end
     else begin
-      result := true;  // no insert or update needed (already up-to-date)
+      exit true;  // no insert or update needed (already up-to-date)
     end;
   end
   else begin
     // song is not in the database, insert it
-    result := InsertSong(Song);
+    exit InsertSong(Song);
   end;
 end;
 
@@ -1020,7 +992,7 @@ begin
     end;
   end;
 
-  result := Songs;
+  exit Songs;
 end;
 
 //*******************************************************************************
@@ -1243,8 +1215,7 @@ begin
     if SongUid.Length > 0 then begin
       if not BeginTransaction then begin
         writeLn("error: begin transaction failed");
-        result := false;
-        exit;
+        exit false;
       end;
 
       var ArgList := new PropertyList;
@@ -1263,7 +1234,7 @@ begin
     end;
   end;
 
-  result := WasDeleted;
+  exit WasDeleted;
 end;
 
 //*******************************************************************************
@@ -1271,16 +1242,16 @@ end;
 method JukeboxDB.MakeStringFromCString(CString: ^Byte): String;
 begin
   if CString = nil then begin
-    result := nil;
+    exit nil;
   end
   else begin
-    //result := Encoding.UTF8.GetString(CString);
-    //result := RemObjects.Elements.System.String.FromPAnsiChar(CString as ^AnsiChar);
-
-    //var encoding := RemObjects.Elements.RTL.Encoding.DetectFromBytes(CString as array  of Byte);
-    //result := encoding.GetString(CString as array  of Byte);
-    result := new Foundation.NSString withCString(^AnsiChar(CString))
-                                      encoding(Foundation.NSStringEncoding.NSUTF8StringEncoding);
+    {$IFDEF DARWIN}
+    const Encoding = Foundation.NSStringEncoding.NSUTF8StringEncoding;
+    exit new Foundation.NSString withCString(^AnsiChar(CString))
+                                 encoding(Encoding);
+    {$ELSE}
+    exit RemObjects.Elements.System.String.FromPAnsiChar(CString as ^AnsiChar);
+    {$ENDIF}
   end;
 end;
 
