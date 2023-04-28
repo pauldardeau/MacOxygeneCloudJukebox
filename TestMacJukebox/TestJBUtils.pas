@@ -13,6 +13,10 @@ type
     method TestEncodeArtistAlbum;
     method TestEncodeArtistAlbumSong;
     method TestRemovePunctuation;
+    method TestComponentsFromFileName;
+    method TestArtistFromFileName;
+    method TestAlbumFromFileName;
+    method TestSongFromFileName;
   end;
 
 implementation
@@ -75,6 +79,64 @@ begin
   HasPunctuation := "Derek & The Dominos";
   NoPunctuation := JBUtils.RemovePunctuation(HasPunctuation);
   Assert.AreEqual(NoPunctuation, "Derek The Dominos");
+end;
+
+//*******************************************************************************
+
+method TestJBUtils.TestComponentsFromFileName;
+begin
+  var Artist := "";
+  var Album := "";
+  var Song := "";
+
+  (Artist, Album, Song) := JBUtils.ComponentsFromFileName("");
+  Assert.AreEqual("", Artist);
+  Assert.AreEqual("", Album);
+  Assert.AreEqual("", Song);
+
+  (Artist, Album, Song) := JBUtils.ComponentsFromFileName("Steely-Dan--Aja--Black-Cow");
+  Assert.AreEqual("Steely Dan", Artist);
+  Assert.AreEqual("Aja", Album);
+  Assert.AreEqual("Black Cow", Song);
+end;
+
+//*******************************************************************************
+
+method TestJBUtils.TestArtistFromFileName;
+begin
+  var Artist := "";
+
+  Artist := JBUtils.ArtistFromFileName("");
+  Assert.AreEqual("", Artist);
+
+  Artist := JBUtils.ArtistFromFileName("Steely-Dan--Aja--Black-Cow");
+  Assert.AreEqual("Steely Dan", Artist);
+end;
+
+//*******************************************************************************
+
+method TestJBUtils.TestAlbumFromFileName;
+begin
+  var Album := "";
+
+  Album := JBUtils.AlbumFromFileName("");
+  Assert.AreEqual("", Album);
+
+  Album := JBUtils.AlbumFromFileName("Steely-Dan--Aja--Black-Cow");
+  Assert.AreEqual("Aja", Album);
+end;
+
+//*******************************************************************************
+
+method TestJBUtils.TestSongFromFileName;
+begin
+  var Song := "";
+
+  Song := JBUtils.SongFromFileName("");
+  Assert.AreEqual("", Song);
+
+  Song := JBUtils.SongFromFileName("Steely-Dan--Aja--Black-Cow");
+  Assert.AreEqual("Black Cow", Song);
 end;
 
 //*******************************************************************************
