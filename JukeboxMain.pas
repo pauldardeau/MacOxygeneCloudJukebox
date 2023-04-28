@@ -66,10 +66,6 @@ type
     const credsFileSuffix      = "_creds.txt";
     const credsContainerPrefix = "container_prefix";
 
-    const awsAccessKey       = "aws_access_key";
-    const awsSecretKey       = "aws_secret_key";
-    const updateAwsAccessKey = "update_aws_access_key";
-    const updateAwsSecretKey = "update_aws_secret_key";
     const endpointUrl        = "endpoint_url";
     const region             = "region";
 
@@ -131,20 +127,8 @@ end;
 method JukeboxMain.ConnectS3System(Credentials: PropertySet;
                                    Prefix: String): StorageSystem;
 begin
-  var theAwsAccessKey := "";
-  var theAwsSecretKey := "";
-  var theUpdateAwsAccessKey := "";
-  var theUpdateAwsSecretKey := "";
   var theEndpointUrl := "";
   var theRegion := "";
-
-  if Credentials.Contains(awsAccessKey) then begin
-    theAwsAccessKey := Credentials.GetStringValue(awsAccessKey);
-  end;
-
-  if Credentials.Contains(awsSecretKey) then begin
-    theAwsSecretKey := Credentials.GetStringValue(awsSecretKey);
-  end;
 
   if Credentials.Contains(endpointUrl) then begin
     theEndpointUrl := Credentials.GetStringValue(endpointUrl);
@@ -154,56 +138,17 @@ begin
     theRegion := Credentials.GetStringValue(region);
   end;
 
-  if Credentials.Contains(updateAwsAccessKey) and
-     Credentials.Contains(updateAwsSecretKey) then begin
-
-    theUpdateAwsAccessKey := Credentials.GetStringValue(updateAwsAccessKey);
-    theUpdateAwsSecretKey := Credentials.GetStringValue(updateAwsSecretKey);
-  end;
-
   if DebugMode then begin
-    writeLn("{0}={1}", awsAccessKey, theAwsAccessKey);
-    writeLn("{0}={1}", awsSecretKey, theAwsSecretKey);
-    if (theUpdateAwsAccessKey.Length() > 0) and (theUpdateAwsSecretKey.Length() > 0) then begin
-      writeLn("{0}={1}", updateAwsAccessKey, theUpdateAwsAccessKey);
-      writeLn("{0}={1}", updateAwsSecretKey, theUpdateAwsSecretKey);
-    end;
     writeLn("endpoint_url={0}", theEndpointUrl);
     if (theRegion.Length() > 0) then begin
       writeLn("region={0}", theRegion);
     end;
   end;
 
-  if (theAwsAccessKey.Length() = 0) or (theAwsSecretKey.Length() = 0) then begin
-    writeLn("error: no s3 credentials given. please specify {0} and {1} in credentials file",
-            awsAccessKey, awsSecretKey);
-    exit nil;
-  end
-  else begin
-    //if Host.Length() = 0 then begin
-    //  writeLn("error: no s3 host given. please specify host in credentials file");
-    //  exit nil;
-    //end;
-
-    var AccessKey := "";
-    var SecretKey := "";
-
-    if UpdateMode then begin
-      AccessKey := theUpdateAwsAccessKey;
-      SecretKey := theUpdateAwsSecretKey;
-    end
-    else begin
-      AccessKey := theAwsAccessKey;
-      SecretKey := theAwsSecretKey;
-    end;
-
-    result := new S3ExtStorageSystem(AccessKey,
-                                     SecretKey,
-                                     theEndpointUrl,
-                                     theRegion,
-                                     Directory,
-                                     DebugMode);
-  end;
+  result := new S3ExtStorageSystem(theEndpointUrl,
+                                   theRegion,
+                                   Directory,
+                                   DebugMode);
 end;
 
 //*******************************************************************************
