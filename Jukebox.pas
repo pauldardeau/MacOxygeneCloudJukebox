@@ -169,7 +169,7 @@ begin
   ContainerNames.Add(SFX_PLAYLIST_CONTAINER);
 
   for each ContainerName in ContainerNames do begin
-    var CnrName := aContainerPrefix + ContainerName;
+    const CnrName = aContainerPrefix + ContainerName;
     if not StorageSys.CreateContainer(CnrName) then begin
       writeLn("error: unable to create container '{0}'", CnrName);
       exit false;
@@ -360,7 +360,7 @@ begin
     end;
   end;
 
-  result := EnterSuccess;
+  exit EnterSuccess;
 end;
 
 //*******************************************************************************
@@ -426,11 +426,11 @@ begin
     const MaxIndex = SongList.Count - 1;
     if (SongIndex+3) <= MaxIndex then begin
       writeLn("----- songs on deck -----");
-      var firstSong := SongList[SongIndex+1];
+      const firstSong = SongList[SongIndex+1];
       writeLn(firstSong.Fm.FileUid);
-      var secondSong := SongList[SongIndex+2];
+      const secondSong = SongList[SongIndex+2];
       writeLn(secondSong.Fm.FileUid);
-      var thirdSong := SongList[SongIndex+3];
+      const thirdSong = SongList[SongIndex+3];
       writeLn(thirdSong.Fm.FileUid);
       writeLn("-------------------------");
     end;
@@ -464,7 +464,7 @@ begin
       StoreSuccess := JukeboxDb.InsertSong(FsSong);
     end;
   end;
-  result := StoreSuccess;
+  exit StoreSuccess;
 end;
 
 //*******************************************************************************
@@ -473,7 +473,7 @@ method Jukebox.StoreSongPlaylist(FileName: String;
                                  FileContents: array of Byte): Boolean;
 begin
   //TODO: implement StoreSongPlaylist
-  result := false;
+  exit false;
 end;
 
 //*******************************************************************************
@@ -501,7 +501,7 @@ begin
     ArtistLetter := Artist[0];
   end;
 
-  result := ContainerPrefix + ArtistLetter.ToLower + SFX_SONG_CONTAINER;
+  exit ContainerPrefix + ArtistLetter.ToLower + SFX_SONG_CONTAINER;
 end;
 
 //*******************************************************************************
@@ -513,7 +513,7 @@ begin
       exit;
     end;
 
-    var DirListing := Utils.ListFilesInDirectory(SongImportDirPath);
+    const DirListing = Utils.ListFilesInDirectory(SongImportDirPath);
     if DirListing.Count = 0 then begin
       exit;
     end;
@@ -683,7 +683,7 @@ end;
 
 method Jukebox.SongPathInPlaylist(Song: SongMetadata): String;
 begin
-  result := Utils.PathJoin(SongPlayDirPath, Song.Fm.FileUid);
+  exit Utils.PathJoin(SongPlayDirPath, Song.Fm.FileUid);
 end;
 
 //*******************************************************************************
@@ -693,12 +693,12 @@ begin
   var FileIntegrityPassed := true;
 
   if JukeboxOptions.CheckDataIntegrity then begin
-    var FilePath := SongPathInPlaylist(Song);
+    const FilePath = SongPathInPlaylist(Song);
     if Utils.FileExists(FilePath) then begin
       if DebugPrint then
         writeLn("checking integrity for {0}", Song.Fm.FileUid);
 
-      var PlaylistMd5 := Utils.Md5ForFile(IniFilePath, FilePath);
+      const PlaylistMd5 = Utils.Md5ForFile(IniFilePath, FilePath);
       if PlaylistMd5.Length = 0 then begin
         writeLn("error: unable to calculate MD5 hash for file '{0}'",
                 FilePath);
@@ -729,7 +729,7 @@ begin
               "not turned on");
   end;
 
-  result := FileIntegrityPassed;
+  exit FileIntegrityPassed;
 end;
 
 //*******************************************************************************
@@ -769,7 +769,7 @@ begin
                                               LocalFilePath);
   end;
 
-  result := BytesRetrieved;
+  exit BytesRetrieved;
 end;
 
 //*******************************************************************************
@@ -909,7 +909,7 @@ end;
 method Jukebox.DownloadSongs;
 begin
   // scan the play list directory to see if we need to download more songs
-  var DirListing := Utils.ListFilesInDirectory(SongPlayDirPath);
+  const DirListing = Utils.ListFilesInDirectory(SongPlayDirPath);
   if DirListing.Count = 0 then begin
     // log error
     exit;
@@ -971,7 +971,7 @@ begin
     end
     else begin
       if DebugPrint then begin
-        writeLn("Not downloading more songs b/c downloader != NULL or " +
+        writeLn("Not downloading more songs b/c Downloader <> nil or " +
                 "DownloadThread <> nil");
       end;
     end;
@@ -991,7 +991,6 @@ end;
 
 method Jukebox.PlaySongs(Shuffle: Boolean; Artist: String; Album: String);
 begin
-  //DIFFERENT
   if JukeboxDb <> nil then begin
     var HaveSongs := false;
     if (Artist.Length > 0) and (Album.Length > 0) then begin
@@ -1185,7 +1184,6 @@ begin
   end;
 
   if Shuffle then begin
-    //DIFFERENT
     //TODO: the following code is buggy
     //var random := new Random;
     //var n := aSongList.Count;
@@ -1347,7 +1345,7 @@ begin
     end;
   end;
 
-  result := MetadataDbUpload;
+  exit MetadataDbUpload;
 end;
 
 //*******************************************************************************
@@ -1360,7 +1358,7 @@ begin
   if JukeboxDb <> nil then begin
     if JukeboxDb.IsOpen() then begin
       var FileImportCount := 0;
-      var DirListing := Utils.ListFilesInDirectory(PlaylistImportDirPath);
+      const DirListing = Utils.ListFilesInDirectory(PlaylistImportDirPath);
       if DirListing.Count = 0 then begin
         writeLn("no playlists found");
         exit;
@@ -1481,7 +1479,7 @@ begin
     writeLn("Unable to retrieve '{0}' from '{1}'",
             JsonFileName, AlbumContainer);
   end;
-  result := Success;
+  exit Success;
 end;
 
 //*******************************************************************************
@@ -1592,7 +1590,7 @@ begin
             JsonFileName,
             PlaylistContainer);
   end;
-  result := Success;
+  exit Success;
 end;
 
 //*******************************************************************************
@@ -1673,7 +1671,7 @@ begin
     end;
   end;
 
-  result := IsDeleted;
+  exit IsDeleted;
 end;
 
 //*******************************************************************************
@@ -1752,7 +1750,7 @@ begin
     writeLn("specify album with 'the-artist--the-song-name' format");
   end;
 
-  result := AlbumDeleted;
+  exit AlbumDeleted;
 end;
 
 //*******************************************************************************
