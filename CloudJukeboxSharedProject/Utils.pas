@@ -327,7 +327,7 @@ type
 
           if ExecuteProgram(Md5Exe,
                             ProgramArgs,
-                            var ExitCode,
+                            out ExitCode,
                             out StdOut,
                             out StdErr) then begin
             if ExitCode = 0 then begin
@@ -444,7 +444,7 @@ type
 
     method ExecuteProgram(ProgramPath: String;
                           ProgramArgs: ImmutableList<String>;
-                          var ExitCode: Integer;
+                          out ExitCode: Integer;
                           out StdOut: String;
                           out StdErr: String): Boolean;
     begin
