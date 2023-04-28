@@ -222,6 +222,7 @@ begin
   SongIndex := -1;
   AudioPlayerExeFileName := "";
   AudioPlayerCommandArgs := "";
+  AudioPlayerResumeArgs := "";
   AudioPlayerProcess := nil;
   SongPlayLengthSeconds := 20;
   CumulativeDownloadBytes := 0;
@@ -229,6 +230,8 @@ begin
   ExitRequested := false;
   IsPaused := false;
   SongSecondsOffset := 0;
+  SongPlayIsResume := false;
+  IsRepeatMode := false;
   Downloader := nil;
   DownloadThread := nil;
   IniFilePath := Utils.PathJoin(JbOptions.Directory, "jukebox.ini");
@@ -410,7 +413,7 @@ begin
 
   // terminate audio player if it's running
   if AudioPlayerProcess <> nil then begin
-    AudioPlayerProcess.Stop;
+    AudioPlayerProcess.Stop();
     AudioPlayerProcess := nil;
   end;
 end;
@@ -498,7 +501,7 @@ begin
     ArtistLetter := Artist[0];
   end;
 
-  result := ContainerPrefix + ArtistLetter.ToLower() + SFX_SONG_CONTAINER;
+  result := ContainerPrefix + ArtistLetter.ToLower + SFX_SONG_CONTAINER;
 end;
 
 //*******************************************************************************
@@ -925,7 +928,7 @@ begin
     end;
   end;
 
-  var FileCacheCount := JukeboxOptions.FileCacheCount;
+  const FileCacheCount = JukeboxOptions.FileCacheCount;
 
   if SongFileCount < FileCacheCount then begin
     // start looking at the next song in the list
@@ -988,6 +991,7 @@ end;
 
 method Jukebox.PlaySongs(Shuffle: Boolean; Artist: String; Album: String);
 begin
+  //DIFFERENT
   if JukeboxDb <> nil then begin
     var HaveSongs := false;
     if (Artist.Length > 0) and (Album.Length > 0) then begin
@@ -1181,6 +1185,7 @@ begin
   end;
 
   if Shuffle then begin
+    //DIFFERENT
     //TODO: the following code is buggy
     //var random := new Random;
     //var n := aSongList.Count;
@@ -1686,8 +1691,7 @@ begin
         for each Song in theSongList do begin
           if not DeleteSong(Song.Fm.ObjectName, false) then begin
             writeLn("error deleting song '{0}'", Song.Fm.ObjectName);
-            result := false;
-            exit;
+            exit false;
           end;
         end;
         UploadMetadataDb;
@@ -1696,7 +1700,7 @@ begin
     end;
   end;
 
-  result := IsDeleted;
+  exit IsDeleted;
 end;
 
 //*******************************************************************************
