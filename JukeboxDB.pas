@@ -91,11 +91,9 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.Open: Boolean;
-var
-  OpenSuccess: Boolean;
 begin
   Close;
-  OpenSuccess := false;
+  var OpenSuccess := false;
 
   const rawMetadataDbFilePath = Encoding.UTF8.GetBytes(MetadataDbFilePath);
   var pChar := @rawMetadataDbFilePath[0];
@@ -120,10 +118,8 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.Close: Boolean;
-var
-  DidClose: Boolean;
 begin
-  DidClose := false;
+  var DidClose := false;
   if DbConnection <> nil then begin
     if PsRetrieveSong <> nil then begin
       libsqlite3.sqlite3_finalize(PsRetrieveSong);
@@ -201,10 +197,8 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.StepStatement(Statement: ^libsqlite3.sqlite3_stmt): Boolean;
-var
-  DidSucceed: Boolean;
 begin
-  DidSucceed := false;
+  var DidSucceed := false;
   if (DbConnection <> nil) and (Statement <> nil) then begin
     var rc := libsqlite3.sqlite3_step(Statement);
     if rc = libsqlite3.SQLITE_DONE then begin
@@ -525,10 +519,8 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.CreateTable(SqlStatement: String): Boolean;
-var
-  DidSucceed: Boolean;
 begin
-  DidSucceed := false;
+  var DidSucceed := false;
   if DbConnection <> nil then begin
     var Stmt := PrepareStatement(SqlStatement);
     if Stmt = nil then begin
@@ -555,9 +547,8 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.CreateTables: Boolean;
-var DidSucceed: Boolean;
 begin
-  DidSucceed := false;
+  var DidSucceed := false;
   if DbConnection <> nil then begin
     if DebugPrint then begin
       writeLn("creating tables");
@@ -614,16 +605,14 @@ begin
                   CreateTable(createPlaylistSongTable);
   end;
 
-  result := DidSucceed;
+  exit DidSucceed;
 end;
 
 //*******************************************************************************
 
 method JukeboxDB.HaveTables: Boolean;
-var
-  HaveTablesInDb: Boolean;
 begin
-  HaveTablesInDb := false;
+  var HaveTablesInDb := false;
   if DbConnection <> nil then begin
     const SqlQuery = "SELECT COUNT(*) " +
                      "FROM sqlite_master " +
@@ -973,7 +962,7 @@ end;
 
 method JukeboxDB.SqlWhereClause: String;
 begin
-  result := " WHERE encrypted = 0";
+  exit " WHERE encrypted = 0";
 end;
 
 //*******************************************************************************
@@ -1037,10 +1026,8 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.SongsForArtist(ArtistName: String): List<SongMetadata>;
-var
-  Songs: List<SongMetadata>;
 begin
-  Songs := new List<SongMetadata>;
+  var Songs := new List<SongMetadata>;
   if DbConnection <> nil then begin
     var SqlQuery := "SELECT song_uid," +
                            "file_time," +
@@ -1068,7 +1055,7 @@ begin
       end;
     end;
   end;
-  result := Songs;
+  exit Songs;
 end;
 
 //*******************************************************************************
@@ -1249,10 +1236,9 @@ end;
 
 method JukeboxDB.DeleteSong(SongUid: String): Boolean;
 var
-  WasDeleted: Boolean;
   RowsAffected: Int32;
 begin
-  WasDeleted := false;
+  var WasDeleted := false;
   if DbConnection <> nil then begin
     if SongUid.Length > 0 then begin
       if not BeginTransaction then begin
