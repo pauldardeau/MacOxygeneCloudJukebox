@@ -96,7 +96,8 @@ type
     method DisplayInfo;
     method GetMetadataDbFilePath: String;
     method StoreSongMetadata(FsSong: SongMetadata): Boolean;
-    method StoreSongPlaylist(FileName: String; FileContents: array of Byte): Boolean;
+    method StoreSongPlaylist(FileName: String;
+                             FileContents: array of Byte): Boolean;
     method ContainerForSong(SongUid: String): String;
     method ImportSongs;
     method SongPathInPlaylist(Song: SongMetadata): String;
@@ -132,7 +133,7 @@ type
     method GetAlbumTrackObjectList(Artist: String;
                                    AlbumName: String;
                                    ListTrackObjects: List<String>): Boolean;
-    method GetPlaylistSongs(Playlist: String;
+    method GetPlaylistSongs(PlaylistName: String;
                             ListSongs: List<SongMetadata>): Boolean;
     method ReadAudioPlayerConfig;
 
@@ -586,7 +587,7 @@ begin
             var FileRead := false;
 
             const FileContents = Utils.FileReadAllBytes(FullPath);
-            if FileContents.length > 0 then begin
+            if FileContents.Length > 0 then begin
               FileRead := true;
             end
             else begin
@@ -594,8 +595,8 @@ begin
             end;
 
             if FileRead then begin
-              if FileContents.length > 0 then begin
-                fsSong.Fm.StoredFileSize := Int64(FileContents.length);
+              if FileContents.Length > 0 then begin
+                fsSong.Fm.StoredFileSize := Int64(FileContents.Length);
                 //startUploadTime := time.Now()
 
                 const ContainerName = ContainerPrefix + fsSong.Fm.ContainerName;
@@ -609,7 +610,7 @@ begin
                   // endUploadTime - startUploadTime
                   //uploadElapsedTime := endUploadTime.Add(-startUploadTime)
                   //cumulativeUploadTime.Add(uploadElapsedTime)
-                  CumulativeUploadBytes := CumulativeUploadBytes + FileContents.length;
+                  CumulativeUploadBytes := CumulativeUploadBytes + FileContents.Length;
 
                   // store song metadata in local database
                   if not StoreSongMetadata(fsSong) then begin
@@ -848,7 +849,7 @@ begin
             theSongStartTime := theSongStartTime + ":";
             const remainingSeconds = SongSecondsOffset mod 60;
             var secondsText := remainingSeconds.ToString();
-            if secondsText.length = 1 then begin
+            if secondsText.Length = 1 then begin
               secondsText := "0" + secondsText;
             end;
             theSongStartTime := theSongStartTime + secondsText;
@@ -1503,12 +1504,12 @@ end;
 
 //*******************************************************************************
 
-method Jukebox.GetPlaylistSongs(Playlist: String;
+method Jukebox.GetPlaylistSongs(PlaylistName: String;
                                 ListSongs: List<SongMetadata>): Boolean;
 begin
   var Success := false;
   const JsonFileName = String.Format("{0}{1}",
-                                     JBUtils.EncodeValue(Playlist),
+                                     JBUtils.EncodeValue(PlaylistName),
                                      JSON_FILE_EXT);
   const LocalJsonFile = Utils.PathJoin(SongPlayDirPath, JsonFileName);
   if StorageSystem.GetObject(PlaylistContainer,
