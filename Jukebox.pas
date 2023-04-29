@@ -795,8 +795,8 @@ begin
     CumulativeDownloadBytes := CumulativeDownloadBytes + SongBytesRetrieved;
 
     // are we checking data integrity?
-    // if so, verify that the storage system retrieved the same length that has
-    // been stored
+    // if so, verify that the storage system retrieved the same length that
+    // has been stored
     if JukeboxOptions.CheckDataIntegrity then begin
       if DebugPrint then begin
         writeLn("verifying data integrity");
@@ -1467,7 +1467,7 @@ begin
     if AlbumJsonContents.Length > 0 then begin
       var Deserializer := new JsonDeserializer(AlbumJsonContents);
       {$IFDEF DARWIN}
-      const AlbumJson = Deserializer.Deserialize();
+      const AlbumJson = Deserializer.Deserialize;
       const TrackList = AlbumJson.Item["tracks"] as JsonArray;
       const NumberTracks = TrackList.Count;
       if NumberTracks > 0 then begin
@@ -1526,7 +1526,7 @@ begin
       var Deserializer := new JsonDeserializer(PlaylistJsonContents);
 
       {$IFDEF DARWIN}
-      const PlaylistJson = Deserializer.Deserialize();
+      const PlaylistJson = Deserializer.Deserialize;
       const theSongList = PlaylistJson.Item["songs"] as JsonArray;
       const plNumberSongs = theSongList.Count;
       if plNumberSongs > 0 then begin
