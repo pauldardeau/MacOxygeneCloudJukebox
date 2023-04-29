@@ -543,14 +543,16 @@ end;
 
 //*****************************************************************************
 
-method S3ExtStorageSystem.PopulateBucket(Kvp: KeyValuePairs; BucketName: String);
+method S3ExtStorageSystem.PopulateBucket(Kvp: KeyValuePairs;
+                                         BucketName: String);
 begin
   Kvp.AddPair(SCR_VAR_BUCKET_NAME, BucketName);
 end;
 
 //*****************************************************************************
 
-method S3ExtStorageSystem.PopulateObject(Kvp: KeyValuePairs; ObjectName: String);
+method S3ExtStorageSystem.PopulateObject(Kvp: KeyValuePairs;
+                                         ObjectName: String);
 begin
   Kvp.AddPair(SCR_VAR_OBJECT_NAME, ObjectName);
 end;
