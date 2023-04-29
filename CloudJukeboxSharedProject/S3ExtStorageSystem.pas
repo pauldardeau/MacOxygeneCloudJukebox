@@ -22,6 +22,9 @@ type
     const SFX_BATCH_FILE = ".bat";
     const SFX_SHELL_SCRIPT = ".sh";
 
+    // system shells
+    const DEFAULT_POSIX_SHELL = "/bin/sh";
+
     // file prefixes
     const PREFIX_RUN_SCRIPT_NAME = "exec-";
 
@@ -35,6 +38,14 @@ type
     const SCR_TEMPLATE_PUT_OBJECT = "s3-put-object";
     const SCR_TEMPLATE_DELETE_OBJECT = "s3-delete-object";
     const SCR_TEMPLATE_GET_OBJECT = "s3-get-object";
+
+    // script variables
+    const SCR_VAR_BUCKET_NAME = "%%BUCKET_NAME%%";
+    const SCR_VAR_METADATA_PROPERTIES = "%%METADATA_PROPERTIES%%";
+    const SCR_VAR_OBJECT_NAME = "%%OBJECT_NAME%%";
+    const SCR_VAR_OUTPUT_FILE = "%%OUTPUT_FILE%%";
+    const SCR_VAR_S3_ENDPOINT_URL = "%%S3_ENDPOINT_URL%%";
+    const SCR_VAR_S3_REGION = "%%S3_REGION%%";
 
 
     constructor(aEndpointUrl: String;
@@ -419,7 +430,7 @@ begin
 
   if MetadataProps.Length > 0 then begin
     ScriptTemplate := SCR_TEMPLATE_PUT_OBJECT_WITH_PROPERTIES + GetScriptSuffix;
-    Kvp.AddPair("%%METADATA_PROPERTIES%%", MetadataProps);
+    Kvp.AddPair(SCR_VAR_METADATA_PROPERTIES, MetadataProps);
   end
   else begin
     ScriptTemplate := SCR_TEMPLATE_PUT_OBJECT + GetScriptSuffix;
@@ -498,7 +509,7 @@ begin
   PopulateCommonVariables(Kvp);
   PopulateBucket(Kvp, ContainerName);
   PopulateObject(Kvp, ObjectName);
-  Kvp.AddPair("%%OUTPUT_FILE%%", LocalFilePath);
+  Kvp.AddPair(SCR_VAR_OUTPUT_FILE, LocalFilePath);
 
   const ScriptTemplate = SCR_TEMPLATE_GET_OBJECT + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
@@ -526,22 +537,22 @@ end;
 
 method S3ExtStorageSystem.PopulateCommonVariables(Kvp: KeyValuePairs);
 begin
-  Kvp.AddPair("%%S3_ENDPOINT_URL%%", EndpointUrl);
-  Kvp.AddPair("%%S3_REGION%%", Region);
+  Kvp.AddPair(SCR_VAR_S3_ENDPOINT_URL, EndpointUrl);
+  Kvp.AddPair(SCR_VAR_S3_REGION, Region);
 end;
 
 //*****************************************************************************
 
 method S3ExtStorageSystem.PopulateBucket(Kvp: KeyValuePairs; BucketName: String);
 begin
-  Kvp.AddPair("%%BUCKET_NAME%%", BucketName);
+  Kvp.AddPair(SCR_VAR_BUCKET_NAME, BucketName);
 end;
 
 //*****************************************************************************
 
 method S3ExtStorageSystem.PopulateObject(Kvp: KeyValuePairs; ObjectName: String);
 begin
-  Kvp.AddPair("%%OBJECT_NAME%%", ObjectName);
+  Kvp.AddPair(SCR_VAR_OBJECT_NAME, ObjectName);
 end;
 
 //*****************************************************************************
@@ -573,7 +584,7 @@ begin
       ExecutablePath := FirstLine.Substring(2, LineLength-2);
     end
     else begin
-      ExecutablePath := "/bin/sh";
+      ExecutablePath := DEFAULT_POSIX_SHELL;
     end;
     IsShellScript := true;
   end;
@@ -642,7 +653,7 @@ begin
       ExecutablePath := FirstLine.Substring(2, LineLength-2);
     end
     else begin
-      ExecutablePath := "/bin/sh";
+      ExecutablePath := DEFAULT_POSIX_SHELL;
     end;
     IsShellScript := true;
   end;
@@ -695,7 +706,7 @@ begin
       ExecutablePath := FirstLine.Substring(2, LineLength-2);
     end
     else begin
-      ExecutablePath := "/bin/sh";
+      ExecutablePath := DEFAULT_POSIX_SHELL;
     end;
     IsShellScript := true;
   end;
