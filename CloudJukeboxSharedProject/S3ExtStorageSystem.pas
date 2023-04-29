@@ -12,21 +12,29 @@ type
     ListContainers: List<String>;
 
   public
+    // Http properties
     const PROP_CONTENT_LENGTH = "Content-Length";
     const PROP_CONTENT_TYPE = "Content-Type";
     const PROP_CONTENT_MD5 = "Content-MD5";
     const PROP_CONTENT_ENCODING = "Content-Encoding";
 
-    const runScriptNamePrefix = "exec-";
-    const scrTemplateListContainers = "s3-list-containers.sh";
-    const scrTemplateCreateContainer = "s3-create-container.sh";
-    const scrTemplateDeleteContainer = "s3-delete-container.sh";
-    const scrTemplateListContainerContents = "s3-list-container-contents.sh";
-    const scrTemplateHeadObject = "s3-head-object.sh";
-    const scrTemplatePutObjectWithProperties = "s3-put-object-props.sh";
-    const scrTemplatePutObject = "s3-put-object.sh";
-    const scrTemplateDeleteObject = "s3-delete-object.sh";
-    const scrTemplateGetObject = "s3-get-object.sh";
+    // script file extensions (suffixes)
+    const SFX_BATCH_FILE = ".bat";
+    const SFX_SHELL_SCRIPT = ".sh";
+
+    // file prefixes
+    const PREFIX_RUN_SCRIPT_NAME = "exec-";
+
+    // scripts
+    const SCR_TEMPLATE_LIST_CONTAINERS = "s3-list-containers";
+    const SCR_TEMPLATE_CREATE_CONTAINER = "s3-create-container";
+    const SCR_TEMPLATE_DELETE_CONTAINER = "s3-delete-container";
+    const SCR_TEMPLATE_LIST_CONTAINER_CONTENTS = "s3-list-container-contents";
+    const SCR_TEMPLATE_HEAD_OBJECT = "s3-head-object";
+    const SCR_TEMPLATE_PUT_OBJECT_WITH_PROPERTIES = "s3-put-object-props";
+    const SCR_TEMPLATE_PUT_OBJECT = "s3-put-object";
+    const SCR_TEMPLATE_DELETE_OBJECT = "s3-delete-object";
+    const SCR_TEMPLATE_GET_OBJECT = "s3-get-object";
 
 
     constructor(aEndpointUrl: String;
@@ -58,6 +66,8 @@ type
     method GetObject(ContainerName: String;
                      ObjectName: String;
                      LocalFilePath: String): Int64; override;
+    method GetScriptSuffix(): String;
+
 
   protected
     method PopulateCommonVariables(Kvp: KeyValuePairs);
@@ -125,7 +135,7 @@ begin
   var Kvp := new KeyValuePairs;
   PopulateCommonVariables(Kvp);
 
-  const ScriptTemplate = scrTemplateListContainers;
+  const ScriptTemplate = SCR_TEMPLATE_LIST_CONTAINERS + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
                                    RunScriptNameForTemplate(ScriptTemplate));
 
@@ -175,7 +185,7 @@ begin
   PopulateCommonVariables(Kvp);
   PopulateBucket(Kvp, ContainerName);
 
-  const ScriptTemplate = scrTemplateCreateContainer;
+  const ScriptTemplate = SCR_TEMPLATE_CREATE_CONTAINER + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
                                    RunScriptNameForTemplate(ScriptTemplate));
 
@@ -213,7 +223,7 @@ begin
   PopulateCommonVariables(Kvp);
   PopulateBucket(Kvp, ContainerName);
 
-  const ScriptTemplate = scrTemplateDeleteContainer;
+  const ScriptTemplate = SCR_TEMPLATE_DELETE_CONTAINER + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
                                    RunScriptNameForTemplate(ScriptTemplate));
 
@@ -245,7 +255,7 @@ begin
   PopulateCommonVariables(Kvp);
   PopulateBucket(Kvp, ContainerName);
 
-  const ScriptTemplate = scrTemplateListContainerContents;
+  const ScriptTemplate = SCR_TEMPLATE_LIST_CONTAINER_CONTENTS + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
                                    RunScriptNameForTemplate(ScriptTemplate));
 
@@ -286,7 +296,7 @@ begin
   PopulateBucket(Kvp, ContainerName);
   PopulateObject(Kvp, ObjectName);
 
-  const ScriptTemplate = scrTemplateHeadObject;
+  const ScriptTemplate = SCR_TEMPLATE_HEAD_OBJECT + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
                                    RunScriptNameForTemplate(ScriptTemplate));
 
@@ -408,11 +418,11 @@ begin
   MetadataProps := MetadataProps.Trim();
 
   if MetadataProps.Length > 0 then begin
-    ScriptTemplate := scrTemplatePutObjectWithProperties;
+    ScriptTemplate := SCR_TEMPLATE_PUT_OBJECT_WITH_PROPERTIES + GetScriptSuffix;
     Kvp.AddPair("%%METADATA_PROPERTIES%%", MetadataProps);
   end
   else begin
-    ScriptTemplate := scrTemplatePutObject;
+    ScriptTemplate := SCR_TEMPLATE_PUT_OBJECT + GetScriptSuffix;
   end;
 
   const RunScript = Utils.PathJoin(ScriptDirectory,
@@ -448,7 +458,7 @@ begin
   PopulateBucket(Kvp, ContainerName);
   PopulateObject(Kvp, ObjectName);
 
-  const ScriptTemplate = scrTemplateDeleteObject;
+  const ScriptTemplate = SCR_TEMPLATE_DELETE_OBJECT + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
                                    RunScriptNameForTemplate(ScriptTemplate));
 
@@ -490,7 +500,7 @@ begin
   PopulateObject(Kvp, ObjectName);
   Kvp.AddPair("%%OUTPUT_FILE%%", LocalFilePath);
 
-  const ScriptTemplate = scrTemplateGetObject;
+  const ScriptTemplate = SCR_TEMPLATE_GET_OBJECT + GetScriptSuffix;
   const RunScript = Utils.PathJoin(ScriptDirectory,
                                    RunScriptNameForTemplate(ScriptTemplate));
 
@@ -551,7 +561,7 @@ begin
   var IsShellScript := false;
   var ExecutablePath := ProgramPath;
 
-  if ProgramPath.EndsWith(".sh") then begin
+  if ProgramPath.EndsWith(SFX_SHELL_SCRIPT) then begin
     const FileLines = Utils.FileReadTextLines(ProgramPath);
     if FileLines.Count = 0 then begin
       writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
@@ -620,7 +630,7 @@ begin
   var IsShellScript := false;
   var ExecutablePath := ProgramPath;
 
-  if ProgramPath.EndsWith(".sh") then begin
+  if ProgramPath.EndsWith(SFX_SHELL_SCRIPT) then begin
     const FileLines = Utils.FileReadTextLines(ProgramPath);
     if FileLines.Count = 0 then begin
       writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
@@ -673,7 +683,7 @@ begin
   var IsShellScript := false;
   var ExecutablePath := ProgramPath;
 
-  if ProgramPath.EndsWith(".sh") then begin
+  if ProgramPath.EndsWith(SFX_SHELL_SCRIPT) then begin
     const FileLines = Utils.FileReadTextLines(ProgramPath);
     if FileLines.Count = 0 then begin
       writeLn("RunProgram: unable to read file '{0}'", ProgramPath);
@@ -718,7 +728,8 @@ method S3ExtStorageSystem.PrepareRunScript(ScriptTemplate: String;
 begin
   Utils.DeleteFileIfExists(RunScript);
 
-  if not Utils.FileCopy(Utils.PathJoin(ScriptDirectory, ScriptTemplate), RunScript) then begin
+  const SourceFile = Utils.PathJoin(ScriptDirectory, ScriptTemplate);
+  if not Utils.FileCopy(SourceFile, RunScript) then begin
     exit false;
   end;
 
@@ -748,7 +759,18 @@ end;
 
 method S3ExtStorageSystem.RunScriptNameForTemplate(ScriptTemplate: String): String;
 begin
-  exit runScriptNamePrefix + ScriptTemplate;
+  exit PREFIX_RUN_SCRIPT_NAME + ScriptTemplate;
+end;
+
+//*****************************************************************************
+
+method S3ExtStorageSystem.GetScriptSuffix(): String;
+begin
+  {$IFDEF WINDOWS}
+  exit SFX_BATCH_FILE;
+  {$ELSE}
+  exit SFX_SHELL_SCRIPT;
+  {$ENDIF}
 end;
 
 //*****************************************************************************
