@@ -17,7 +17,8 @@ type
 
     constructor(aIniFile: String);
     constructor(aIniFile: String; aFileContents: String);  // for unit testing
-    method ReadSection(Section: String; var SectionValues: KeyValuePairs): Boolean;
+    method ReadSection(Section: String;
+                       var SectionValues: KeyValuePairs): Boolean;
     method GetSectionKeyValue(Section: String;
                               Key: String;
                               out Value: String): Boolean;
