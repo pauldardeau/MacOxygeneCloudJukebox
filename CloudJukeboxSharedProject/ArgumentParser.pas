@@ -49,7 +49,9 @@ end;
 
 //*******************************************************************************
 
-method ArgumentParser.AddOption(O: String; OptionType: String; Help: String): Boolean;
+method ArgumentParser.AddOption(O: String;
+                                OptionType: String;
+                                Help: String): Boolean;
 begin
   var OptionAdded := true;
 

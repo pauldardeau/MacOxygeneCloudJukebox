@@ -31,7 +31,8 @@ type
                              ObjectName: String;
                              FilePath: String;
                              Headers: PropertySet): Boolean; override;
-    method DeleteObject(ContainerName: String; ObjectName: String): Boolean; override;
+    method DeleteObject(ContainerName: String;
+                        ObjectName: String): Boolean; override;
     method GetObject(ContainerName: String;
                      ObjectName: String;
                      LocalFilePath: String): Int64; override;

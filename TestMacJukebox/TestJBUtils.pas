@@ -94,7 +94,8 @@ begin
   Assert.AreEqual("", Album);
   Assert.AreEqual("", Song);
 
-  (Artist, Album, Song) := JBUtils.ComponentsFromFileName("Steely-Dan--Aja--Black-Cow");
+  (Artist, Album, Song) :=
+    JBUtils.ComponentsFromFileName("Steely-Dan--Aja--Black-Cow");
   Assert.AreEqual("Steely Dan", Artist);
   Assert.AreEqual("Aja", Album);
   Assert.AreEqual("Black Cow", Song);
