@@ -1196,23 +1196,23 @@ begin
     var k: Integer;
 
     while (n > 1) do begin
-       dec(n);
-       GettingValidRandomIndex := true;
-       while GettingValidRandomIndex do begin
-         const j = random.NextInt(n + 1);
-         if (j >= aSongList.Count) or (j < 0) then begin
-           // I think this is a bug in NextInt method. Sometimes getting
-           // -1 value.
-           writeLn("*** j = {0}, n = {1}", j, n);
-         end
-         else begin
-           GettingValidRandomIndex := false;
-           k := j;
-         end;
-       end;
-       var value := aSongList[k];
-       aSongList[k] := aSongList[n];
-       aSongList[n] := value;
+      dec(n);
+      GettingValidRandomIndex := true;
+      while GettingValidRandomIndex do begin
+        const j = random.NextInt(n + 1);
+        if (j >= aSongList.Count) or (j < 0) then begin
+          // I think this is a bug in NextInt method. Sometimes getting
+          // -1 value.
+          writeLn("*** j = {0}, n = {1}", j, n);
+        end
+        else begin
+          GettingValidRandomIndex := false;
+          k := j;
+        end;
+      end;
+      var value := aSongList[k];
+      aSongList[k] := aSongList[n];
+      aSongList[n] := value;
     end;
   end;
 
