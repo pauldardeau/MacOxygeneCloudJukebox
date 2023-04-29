@@ -745,10 +745,6 @@ begin
     exit false;
   end;
 
-  //if not Utils.FileSetPermissions(RunScript, 7, 0, 0) then begin
-  //   exit false;
-  //end;
-
   var FileText := Utils.FileReadAllText(RunScript);
   if FileText.Length = 0 then begin
     exit false;
