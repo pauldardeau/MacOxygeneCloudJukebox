@@ -58,7 +58,7 @@ end;
 
 method PropertyList.GetIntValue(aIndex: Integer): Integer;
 begin
-  var pv := Get(aIndex);
+  const pv = Get(aIndex);
   if pv <> nil then
     exit pv.GetIntValue
   else
@@ -69,7 +69,7 @@ end;
 
 method PropertyList.GetLongValue(aIndex: Integer): Int64;
 begin
-  var pv := Get(aIndex);
+  const pv = Get(aIndex);
   if pv <> nil then
     exit pv.GetLongValue
   else
@@ -80,7 +80,7 @@ end;
 
 method PropertyList.GetULongValue(aIndex: Integer): UInt64;
 begin
-  var pv := Get(aIndex);
+  const pv = Get(aIndex);
   if pv <> nil then
     exit pv.GetULongValue
   else
@@ -91,7 +91,7 @@ end;
 
 method PropertyList.GetBoolValue(aIndex: Integer): Boolean;
 begin
-  var pv := Get(aIndex);
+  const pv = Get(aIndex);
   if pv <> nil then
     exit pv.GetBoolValue
   else
@@ -102,7 +102,7 @@ end;
 
 method PropertyList.GetStringValue(aIndex: Integer): String;
 begin
-  var pv := Get(aIndex);
+  const pv = Get(aIndex);
   if pv <> nil then
     exit pv.GetStringValue
   else
@@ -113,7 +113,7 @@ end;
 
 method PropertyList.GetDoubleValue(aIndex: Integer): Real;
 begin
-  var pv := Get(aIndex);
+  const pv = Get(aIndex);
   if pv <> nil then
     exit pv.GetDoubleValue
   else

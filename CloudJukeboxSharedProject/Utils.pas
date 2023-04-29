@@ -54,9 +54,9 @@ type
 
     method ListFilesInDirectory(DirPath: String): List<String>;
     begin
-      var theFolder := RemObjects.Elements.RTL.Folder(DirPath);
+      const theFolder = RemObjects.Elements.RTL.Folder(DirPath);
       const lenDirPath = DirPath.Length;
-      var listFiles := new List<String>;
+      const listFiles = new List<String>;
       var strippedFile: String;
       for each fileWithPath in theFolder.GetFiles() do begin
         strippedFile := fileWithPath.Substring(lenDirPath);
@@ -73,7 +73,7 @@ type
     method ListDirsInDirectory(DirPath: String): List<String>;
     begin
       const lenDirPath = DirPath.Length;
-      var listSubdirs := new List<String>;
+      const listSubdirs = new List<String>;
       var strippedDir: String;
       for each subDirWithPath in RemObjects.Elements.RTL.Folder(DirPath).GetSubfolders() do begin
         strippedDir := subDirWithPath.Substring(lenDirPath);
@@ -195,7 +195,7 @@ type
     begin
       if FileExists(OldPath) then begin
         try
-          var NewFile := RemObjects.Elements.RTL.File(OldPath).Rename(NewPath);
+          const NewFile = RemObjects.Elements.RTL.File(OldPath).Rename(NewPath);
           exit NewFile.Exists();
         except
           exit false;
@@ -211,7 +211,7 @@ type
     method FileCopy(Source: String; Target: String): Boolean;
     begin
       try
-        var SourceFile := RemObjects.Elements.RTL.File(Source);
+        const SourceFile = RemObjects.Elements.RTL.File(Source);
         SourceFile.CopyTo(Target);
         exit true;
       except
@@ -308,7 +308,7 @@ type
         exit "";
       end;
 
-      var Kvp := new KeyValuePairs;
+      const Kvp = new KeyValuePairs;
       if GetPlatformConfigValues(IniFileName, Kvp) then begin
         const KeyExe = "md5_exe_file_name";
         const KeyFieldNumber = "md5_hash_output_field";
@@ -319,7 +319,7 @@ type
             exit "";
           end;
 
-          var ProgramArgs := new List<String>;
+          const ProgramArgs = new List<String>;
           ProgramArgs.Add(PathToFile);
           var ExitCode := 0;
           var StdOut := "";

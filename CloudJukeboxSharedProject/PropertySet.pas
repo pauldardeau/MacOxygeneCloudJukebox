@@ -90,7 +90,7 @@ end;
 
 method PropertySet.GetIntValue(PropName: String): Integer;
 begin
-  var pv := Get(PropName);
+  const pv = Get(PropName);
   if pv <> nil then
     exit pv.GetIntValue
   else
@@ -101,7 +101,7 @@ end;
 
 method PropertySet.GetLongValue(PropName: String): Int64;
 begin
-  var pv := Get(PropName);
+  const pv = Get(PropName);
   if pv <> nil then
     exit pv.GetLongValue
   else
@@ -112,7 +112,7 @@ end;
 
 method PropertySet.GetULongValue(PropName: String): UInt64;
 begin
-  var pv := Get(PropName);
+  const pv = Get(PropName);
   if pv <> nil then
     exit pv.GetULongValue
   else
@@ -123,7 +123,7 @@ end;
 
 method PropertySet.GetBoolValue(PropName: String): Boolean;
 begin
-  var pv := Get(PropName);
+  const pv = Get(PropName);
   if pv <> nil then
     exit pv.GetBoolValue
   else
@@ -134,7 +134,7 @@ end;
 
 method PropertySet.GetStringValue(PropName: String): String;
 begin
-  var pv := Get(PropName);
+  const pv = Get(PropName);
   if pv <> nil then
     exit pv.GetStringValue
   else
@@ -145,7 +145,7 @@ end;
 
 method PropertySet.GetDoubleValue(PropName: String): Real;
 begin
-  var pv := Get(PropName);
+  const pv = Get(PropName);
   if pv <> nil then
     exit pv.GetDoubleValue
   else
@@ -164,7 +164,7 @@ end;
 method PropertySet.ToString: String;
 begin
   var Encoded := new StringBuilder;
-  const nl = Environment.LineBreak;
+  const NL = Environment.LineBreak;
 
   for each PropName in GetKeys() do begin
     const PV = Get(PropName);
@@ -177,25 +177,25 @@ begin
       else begin
         BoolValue := VALUE_FALSE;
       end;
-      Encoded.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_BOOL, PropName, BoolValue));
+      Encoded.Append(String.Format("{0}|{1}|{2}" + NL, TYPE_BOOL, PropName, BoolValue));
     end
     else if PV.IsString() then begin
-      Encoded.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_STRING, PropName, PV.GetStringValue()));
+      Encoded.Append(String.Format("{0}|{1}|{2}" + NL, TYPE_STRING, PropName, PV.GetStringValue()));
     end
     else if PV.IsInt() then begin
-      Encoded.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_INT, PropName, PV.GetIntValue()));
+      Encoded.Append(String.Format("{0}|{1}|{2}" + NL, TYPE_INT, PropName, PV.GetIntValue()));
     end
     else if PV.IsLong() then begin
-      Encoded.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_LONG, PropName, PV.GetLongValue()));
+      Encoded.Append(String.Format("{0}|{1}|{2}" + NL, TYPE_LONG, PropName, PV.GetLongValue()));
     end
     else if PV.IsULong() then begin
-      Encoded.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_ULONG, PropName, PV.GetULongValue()));
+      Encoded.Append(String.Format("{0}|{1}|{2}" + NL, TYPE_ULONG, PropName, PV.GetULongValue()));
     end
     else if PV.IsDouble() then begin
-      Encoded.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_DOUBLE, PropName, PV.GetDoubleValue()));
+      Encoded.Append(String.Format("{0}|{1}|{2}" + NL, TYPE_DOUBLE, PropName, PV.GetDoubleValue()));
     end
     else if PV.IsNull() then begin
-      Encoded.Append(String.Format("{0}|{1}|{2}" + nl, TYPE_NULL, PropName, " "));
+      Encoded.Append(String.Format("{0}|{1}|{2}" + NL, TYPE_NULL, PropName, " "));
     end;
   end;
 
@@ -212,11 +212,6 @@ end;
 //*******************************************************************************
 
 method PropertySet.PopulateFromString(EncodedPropertySet: String): Boolean;
-var
-  IntValue: Int32;
-  LongValue: Int64;
-  ULongValue: Int64;
-  DoubleValue: Real;
 begin
   var Success := false;
 
@@ -252,7 +247,7 @@ begin
                     Add(PropName, new PropertyValue(PropValue));
                   end
                   else if DataType = TYPE_INT then begin
-                    IntValue := Convert.TryToInt32(PropValue);
+                    const IntValue = Convert.TryToInt32(PropValue);
                     if IntValue <> nil then begin
                       Add(PropName, new PropertyValue(IntValue));
                     end
@@ -261,7 +256,7 @@ begin
                     end;
                   end
                   else if DataType = TYPE_LONG then begin
-                    LongValue := Convert.TryToInt64(PropValue);
+                    const LongValue = Convert.TryToInt64(PropValue);
                     if LongValue <> nil then begin
                       Add(PropName, new PropertyValue(LongValue));
                     end
@@ -270,7 +265,7 @@ begin
                     end;
                   end
                   else if DataType = TYPE_ULONG then begin
-                    ULongValue := Convert.TryToInt64(PropValue);
+                    const ULongValue = Convert.TryToInt64(PropValue);
                     if ULongValue <> nil then begin
                       Add(PropName, new PropertyValue(ULongValue));
                     end
@@ -279,7 +274,7 @@ begin
                     end;
                   end
                   else if DataType = TYPE_DOUBLE then begin
-                    DoubleValue := Convert.TryToDouble(PropValue);
+                    const DoubleValue = Convert.TryToDouble(PropValue);
                     if DoubleValue <> nil then begin
                       Add(PropName, new PropertyValue(DoubleValue));
                     end

@@ -102,33 +102,22 @@ end;
 //*******************************************************************************
 
 method ArgumentParser.ParseArgs(Args: ImmutableList<String>): PropertySet;
-var
-  NumArgs: Integer;
-  Working: Boolean;
-  I: Integer;
-  CommandsFound: Integer;
-  Arg: String;
-  ArgType: String;
-  NextArg: String;
-  CommandName: String;
-
 begin
   var ps := new PropertySet;
+  const NumArgs = Args.Count;
+  var Working := true;
+  var I := 0;
+  var CommandsFound := 0;
 
-  NumArgs := Args.Count;
-  Working := true;
-  I := 0;
-  CommandsFound := 0;
-
-  if NumArgs = 0 then
+  if NumArgs = 0 then begin
     Working := false;
-
+  end;
 
   while Working do
   begin
-    Arg := Args[I];
+    var Arg := Args[I];
     if DictAllReservedWords.ContainsKey(Arg) then begin
-      ArgType := DictAllReservedWords[Arg];
+      const ArgType = DictAllReservedWords[Arg];
       Arg := Arg.Substring(2);
       if ArgType = TYPE_BOOL_VALUE then begin
         if DebugMode then begin
@@ -139,7 +128,7 @@ begin
       else if ArgType = TYPE_INT_VALUE then begin
         inc(I);
         if I < NumArgs then begin
-          NextArg := Args[I];
+          const NextArg = Args[I];
           var IntValue := Convert.TryToInt32(NextArg);
           if IntValue <> nil then begin
             if DebugMode then begin
@@ -156,7 +145,7 @@ begin
       else if ArgType = TYPE_STRING_VALUE then begin
         inc(I);
         if I < NumArgs then begin
-          NextArg := Args[I];
+          const NextArg = Args[I];
           if DebugMode then begin
             writeLn("ArgumentParser: adding key={0} value={1}", Arg, NextArg);
           end;
@@ -179,7 +168,7 @@ begin
       end
       else begin
         if CommandsFound < ListCommands.Count then begin
-          CommandName := ListCommands[CommandsFound];
+          const CommandName = ListCommands[CommandsFound];
           if DebugMode then begin
             writeLn("ArgumentParser: adding key={0} value={1}", CommandName, Arg);
           end;

@@ -166,7 +166,7 @@ begin
   end;
 
   // create the other (non-song) containers
-  var ContainerNames := new List<String>;
+  const ContainerNames = new List<String>;
   ContainerNames.Add(SFX_METADATA_CONTAINER);
   ContainerNames.Add(SFX_ALBUM_ART_CONTAINER);
   ContainerNames.Add(SFX_ALBUM_CONTAINER);
@@ -920,7 +920,7 @@ begin
     exit;
   end;
 
-  var DlSongs := new List<SongMetadata>;
+  const DlSongs = new List<SongMetadata>;
 
   var SongFileCount := 0;
   for each FileName in DirListing do begin
@@ -999,12 +999,12 @@ begin
   if JukeboxDb <> nil then begin
     var HaveSongs := false;
     if (Artist.Length > 0) and (Album.Length > 0) then begin
-      var aSongList := new List<SongMetadata>;
-      var ListTrackObjects := new List<String>;
+      const aSongList = new List<SongMetadata>;
+      const ListTrackObjects = new List<String>;
       if GetAlbumTrackObjectList(Artist, Album, ListTrackObjects) then begin
         if ListTrackObjects.Count > 0 then begin
           for each TrackObjectName in ListTrackObjects do begin
-            var Song := JukeboxDb.RetrieveSong(TrackObjectName);
+            const Song = JukeboxDb.RetrieveSong(TrackObjectName);
             if Song <> nil then begin
               aSongList.Add(Song);
             end;
@@ -1048,7 +1048,7 @@ begin
   AudioPlayerCommandArgs := "";
   AudioPlayerResumeArgs := "";
 
-  var iniReader := new IniReader(AudioIniFilePath);
+  const iniReader = new IniReader(AudioIniFilePath);
   if not iniReader.ReadFile() then begin
     writeLn("error: unable to read ini config file '{0}'",
             AudioIniFilePath);
@@ -1193,7 +1193,7 @@ begin
   end;
 
   if Shuffle then begin
-    var random := new Random;
+    const random = new Random;
     var n := aSongList.Count;
     var GettingValidRandomIndex: Boolean;
     var k: Integer;
@@ -1213,7 +1213,7 @@ begin
           k := j;
         end;
       end;
-      var value := aSongList[k];
+      const value = aSongList[k];
       aSongList[k] := aSongList[n];
       aSongList[n] := value;
     end;
@@ -1468,7 +1468,7 @@ begin
 
     const AlbumJsonContents = Utils.FileReadAllText(LocalJsonFile);
     if AlbumJsonContents.Length > 0 then begin
-      var Deserializer := new JsonDeserializer(AlbumJsonContents);
+      const Deserializer = new JsonDeserializer(AlbumJsonContents);
       {$IFDEF DARWIN}
       const AlbumJson = Deserializer.Deserialize;
       const TrackList = AlbumJson.Item["tracks"] as JsonArray;
@@ -1481,7 +1481,7 @@ begin
         Success := true;
       end;
       {$ELSE}
-      var Album := Deserializer.Read<Album>;
+      const Album = Deserializer.Read<Album>;
       if Album <> nil then begin
         const NumberTracks = Album.Tracks.Count;
         if NumberTracks > 0 then begin
@@ -1521,12 +1521,12 @@ begin
 
     const PlaylistJsonContents = Utils.FileReadAllText(LocalJsonFile);
     if PlaylistJsonContents.Length > 0 then begin
-      var FileExtensions := new List<String>;
+      const FileExtensions = new List<String>;
       FileExtensions.Add(".flac");
       FileExtensions.Add(".m4a");
       FileExtensions.Add(".mp3");
 
-      var Deserializer := new JsonDeserializer(PlaylistJsonContents);
+      const Deserializer = new JsonDeserializer(PlaylistJsonContents);
 
       {$IFDEF DARWIN}
       const PlaylistJson = Deserializer.Deserialize;
@@ -1566,7 +1566,7 @@ begin
         end;
       end;
       {$ELSE}
-      var Playlist := Deserializer.Read<Playlist>;
+      const Playlist = Deserializer.Read<Playlist>;
       if Playlist <> nil then begin
         if Playlist.Songs.Count > 0 then begin
           var SongsAdded := 0;
@@ -1620,7 +1620,7 @@ end;
 
 method Jukebox.ShowAlbum(Artist: String; Album: String);
 begin
-  var ListTrackObjects: List<String> := new List<String>;
+  const ListTrackObjects: List<String> = new List<String>;
   if GetAlbumTrackObjectList(Artist, Album, ListTrackObjects) then begin
     writeLn("Album: {0} ({1}):", Album, Artist);
     var i: Integer := 1;
@@ -1639,7 +1639,7 @@ end;
 
 method Jukebox.ShowPlaylist(Playlist: String);
 begin
-  var ListSongs := new List<SongMetadata>;
+  const ListSongs = new List<SongMetadata>;
   if GetPlaylistSongs(Playlist, ListSongs) then begin
     for each Song in ListSongs do begin
       writeLn("{0} : {1}", Song.SongName, Song.ArtistName);
@@ -1657,7 +1657,7 @@ method Jukebox.PlayPlaylist(Playlist: String);
 begin
   //ScopePlaylist = Playlist;
   var PlaylistSongsFound := false;
-  var theListSongs := new List<SongMetadata>;
+  const theListSongs = new List<SongMetadata>;
   if GetPlaylistSongs(Playlist, theListSongs) then begin
     if theListSongs.Count > 0 then begin
       PlaylistSongsFound := true;

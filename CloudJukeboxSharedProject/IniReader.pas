@@ -51,8 +51,6 @@ end;
 
 method IniReader.ReadSection(Section: String;
                              var SectionValues: KeyValuePairs): Boolean;
-var
-  SectionContents: String;
 begin
   const SectionId = BracketedSection(Section);
   const PosSection = FileContents.IndexOf(SectionId);
@@ -64,6 +62,8 @@ begin
   const PosEndSection = PosSection + SectionId.Length;
   const StartNextSection =
       FileContents.IndexOf(OPEN_BRACKET, PosEndSection);
+
+  var SectionContents: String;
 
   // do we have another section?
   if StartNextSection <> -1 then begin
@@ -149,13 +149,6 @@ end;
 //*******************************************************************************
 
 method IniReader.ReadFile(): Boolean;
-var
-  PosCommentStart: Integer;
-  PosCR: Integer;
-  PosLF: Integer;
-  PosEOL: Integer;
-  BeforeComment: String;
-  AfterComment: String;
 begin
   FileContents := Utils.FileReadAllText(IniFile);
   if (FileContents = nil) or (FileContents.Length = 0) then begin
@@ -167,14 +160,14 @@ begin
   var PosCurrent := 0;
 
   while StrippingComments do begin
-    PosCommentStart := FileContents.IndexOf(COMMENT_IDENTIFIER, PosCurrent);
+    const PosCommentStart = FileContents.IndexOf(COMMENT_IDENTIFIER, PosCurrent);
     if (-1 = PosCommentStart) then begin
       // not found
       StrippingComments := false;
     end
     else begin
-      PosCR := FileContents.IndexOf(EOL_CR, PosCommentStart + 1);
-      PosLF := FileContents.IndexOf(EOL_LF, PosCommentStart + 1);
+      const PosCR = FileContents.IndexOf(EOL_CR, PosCommentStart + 1);
+      const PosLF = FileContents.IndexOf(EOL_LF, PosCommentStart + 1);
       const HaveCR = (-1 <> PosCR);
       const HaveLF = (-1 <> PosLF);
 
@@ -186,6 +179,7 @@ begin
       end
       else begin
         // at least one end-of-line marker was found
+        var PosEOL: Integer;
 
         // were both types found
         if HaveCR and HaveLF then begin
@@ -206,8 +200,8 @@ begin
           end;
         end;
 
-        BeforeComment := FileContents.Substring(0, PosCommentStart);
-        AfterComment := FileContents.Substring(PosEOL);
+        const BeforeComment = FileContents.Substring(0, PosCommentStart);
+        const AfterComment = FileContents.Substring(PosEOL);
         FileContents := BeforeComment + AfterComment;
         PosCurrent := BeforeComment.Length;
       end;
