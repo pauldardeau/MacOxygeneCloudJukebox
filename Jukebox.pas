@@ -155,7 +155,8 @@ begin
 
   for i := 0 to ArtistSongChars.Length-1 do begin
     const ch = ArtistSongChars[i];
-    const ContainerName = aContainerPrefix + String.Format("{0}{1}", ch, SFX_SONG_CONTAINER);
+    const ContainerName = aContainerPrefix +
+      String.Format("{0}{1}", ch, SFX_SONG_CONTAINER);
     if not StorageSys.CreateContainer(ContainerName) then begin
       writeLn("error: unable to create container '{0}'", ContainerName);
       exit false;
@@ -1643,7 +1644,8 @@ begin
     end;
   end
   else begin
-    writeLn("unable to retrieve playlist {0} in {1}", Playlist, PlaylistContainer);
+    writeLn("unable to retrieve playlist {0} in {1}",
+            Playlist, PlaylistContainer);
   end;
 end;
 
