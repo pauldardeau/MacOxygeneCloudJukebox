@@ -577,7 +577,7 @@ begin
 
   if Utils.ExecuteProgram(ExecutablePath,
                           ProgramArgs,
-                          var ExitCode,
+                          out ExitCode,
                           out StdOut,
                           out StdErr) then begin
 
@@ -646,7 +646,7 @@ begin
 
   if Utils.ExecuteProgram(ExecutablePath,
                           ProgramArgs,
-                          var ExitCode,
+                          out ExitCode,
                           out StdOut,
                           out StdErr) then begin
     if ExitCode = 0 then begin
@@ -699,7 +699,7 @@ begin
 
   if Utils.ExecuteProgram(ExecutablePath,
                           ProgramArgs,
-                          var ExitCode,
+                          out ExitCode,
                           out StdOut,
                           out StdErr) then begin
     if ExitCode = 0 then begin
