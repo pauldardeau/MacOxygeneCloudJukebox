@@ -10,7 +10,7 @@ type
 
     method DecodeValue(EncodedValue: String): String;
     begin
-      result := EncodedValue.Replace('-', ' ');
+      exit EncodedValue.Replace('-', ' ');
     end;
 
 //*******************************************************************************
@@ -18,14 +18,14 @@ type
     method EncodeValue(Value: String): String;
     begin
       const ValueWithoutPunctuation = RemovePunctuation(Value);
-      result := ValueWithoutPunctuation.Replace(' ', '-');
+      exit ValueWithoutPunctuation.Replace(' ', '-');
     end;
 
 //*******************************************************************************
 
     method EncodeArtistAlbum(artist: String; album: String): String;
     begin
-      result := EncodeValue(artist) + DOUBLE_DASHES + EncodeValue(album);
+      exit EncodeValue(artist) + DOUBLE_DASHES + EncodeValue(album);
     end;
 
 //*******************************************************************************
@@ -34,9 +34,7 @@ type
                                  album: String;
                                  song: String): String;
     begin
-      result := EncodeArtistAlbum(artist, album) +
-                DOUBLE_DASHES +
-                EncodeValue(song);
+      exit EncodeArtistAlbum(artist, album) + DOUBLE_DASHES + EncodeValue(song);
     end;
 
 //*******************************************************************************
@@ -63,7 +61,7 @@ type
         s := s.Replace(",", "");
       end;
 
-      result := s;
+      exit s;
     end;
 
 //*******************************************************************************
@@ -95,7 +93,7 @@ type
       if FileName.Length > 0 then begin
         (Artist, _, _) := ComponentsFromFileName(FileName);
       end;
-      result := Artist;
+      exit Artist;
     end;
 
 //*******************************************************************************
@@ -106,7 +104,7 @@ type
       if FileName.Length > 0 then begin
         (_, Album, _) := ComponentsFromFileName(FileName);
       end;
-      result := Album;
+      exit Album;
     end;
 
 //*******************************************************************************
@@ -117,7 +115,7 @@ type
       if FileName.Length > 0 then begin
         (_, _, Song) := ComponentsFromFileName(FileName);
       end;
-      result := Song;
+      exit Song;
     end;
 
 //*******************************************************************************

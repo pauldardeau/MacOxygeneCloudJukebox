@@ -107,7 +107,7 @@ type
       else begin
         exit DirPath + FileName;
       end;
-      //result := RemObjects.Elements.RTL.Path.Combine(DirPath, FileName);
+      //exit RemObjects.Elements.RTL.Path.Combine(DirPath, FileName);
     end;
 
 //*******************************************************************************
