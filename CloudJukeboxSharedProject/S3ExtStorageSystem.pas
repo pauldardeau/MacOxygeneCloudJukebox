@@ -741,6 +741,11 @@ begin
   Utils.DeleteFileIfExists(RunScript);
 
   const SourceFile = Utils.PathJoin(ScriptDirectory, ScriptTemplate);
+  if not Utils.FileExists(SourceFile) then begin
+    writeLn("error: source file does not exist '{0}'", SourceFile);
+    exit false;
+  end;
+
   if not Utils.FileCopy(SourceFile, RunScript) then begin
     exit false;
   end;
