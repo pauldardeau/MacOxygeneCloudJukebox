@@ -27,9 +27,9 @@ type
     method BindStatementArguments(Stmt: ^libsqlite3.sqlite3_stmt;
                                   Arguments: PropertyList): Boolean;
     method ExecuteUpdate(SqlStatement: String;
-                         var RowsAffectedCount: Integer): Boolean;
+                         out RowsAffectedCount: Integer): Boolean;
     method ExecuteUpdate(SqlStatement: String;
-                         var RowsAffectedCount: Integer;
+                         out RowsAffectedCount: Integer;
                          Arguments: PropertyList): Boolean;
     method BeginTransaction: Boolean;
     method BeginDeferredTransaction: Boolean;
@@ -208,7 +208,7 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.ExecuteUpdate(SqlStatement: String;
-                               var RowsAffectedCount: Integer): Boolean;
+                               out RowsAffectedCount: Integer): Boolean;
 begin
   if DbConnection = nil then begin
     RowsAffectedCount := 0;
@@ -335,7 +335,7 @@ end;
 //*******************************************************************************
 
 method JukeboxDB.ExecuteUpdate(SqlStatement: String;
-                               var RowsAffectedCount: Integer;
+                               out RowsAffectedCount: Integer;
                                Arguments: PropertyList): Boolean;
 begin
   if DbConnection = nil then begin
@@ -444,7 +444,7 @@ begin
   else begin
     InTransaction := true;
     var RowsAffected: Int32 := 0;
-    exit ExecuteUpdate("BEGIN EXCLUSIVE TRANSACTION;", var RowsAffected);
+    exit ExecuteUpdate("BEGIN EXCLUSIVE TRANSACTION;", out RowsAffected);
   end;
 end;
 
@@ -459,7 +459,7 @@ begin
   else begin
     InTransaction := true;
     var RowsAffected: Int32 := 0;
-    exit ExecuteUpdate("BEGIN DEFERRED TRANSACTION;", var RowsAffected);
+    exit ExecuteUpdate("BEGIN DEFERRED TRANSACTION;", out RowsAffected);
   end;
 end;
 
@@ -473,7 +473,7 @@ begin
   end
   else begin
     var RowsAffected: Int32 := 0;
-    result := ExecuteUpdate("ROLLBACK TRANSACTION;", var RowsAffected);
+    result := ExecuteUpdate("ROLLBACK TRANSACTION;", out RowsAffected);
     InTransaction := false;
   end;
 end;
@@ -488,7 +488,7 @@ begin
   end
   else begin
     var RowsAffected: Int32 := 0;
-    result := ExecuteUpdate("COMMIT TRANSACTION;", var RowsAffected);
+    result := ExecuteUpdate("COMMIT TRANSACTION;", out RowsAffected);
     InTransaction := false;
   end;
 end;
@@ -752,7 +752,7 @@ begin
     Args.Append(new PropertyValue(PlDesc));
     var RowsAffected: Int32 := 0;
 
-    if not ExecuteUpdate(SqlStatement, var RowsAffected, Args) then begin
+    if not ExecuteUpdate(SqlStatement, out RowsAffected, Args) then begin
       Rollback;
     end
     else begin
@@ -780,7 +780,7 @@ begin
     Args.Append(new PropertyValue(PlName));
     var RowsAffected: Int32 := 0;
 
-    if not ExecuteUpdate(SqlQuery, var RowsAffected, Args) then begin
+    if not ExecuteUpdate(SqlQuery, out RowsAffected, Args) then begin
       Rollback;
     end
     else begin
@@ -821,7 +821,7 @@ begin
     const SqlQuery = "INSERT INTO song VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     var RowsAffected: Int32 := 0;
 
-    if not ExecuteUpdate(SqlQuery, var RowsAffected, Args) then begin
+    if not ExecuteUpdate(SqlQuery, out RowsAffected, Args) then begin
       Rollback();
     end
     else begin
@@ -877,7 +877,7 @@ begin
                          "album_uid=? " +
                      "WHERE song_uid = ?";
 
-    if not ExecuteUpdate(SqlQuery, var RowsAffected, Args) then begin
+    if not ExecuteUpdate(SqlQuery, out RowsAffected, Args) then begin
       Rollback();
     end
     else begin
@@ -1176,7 +1176,7 @@ begin
       const SqlStatement = "DELETE FROM song WHERE song_uid = ?";
       var RowsAffected: Int32 := 0;
 
-      if not ExecuteUpdate(SqlStatement, var RowsAffected, ArgList) then begin
+      if not ExecuteUpdate(SqlStatement, out RowsAffected, ArgList) then begin
         Rollback;
         writeLn("error: unable to delete song '{0}'", SongUid);
       end
