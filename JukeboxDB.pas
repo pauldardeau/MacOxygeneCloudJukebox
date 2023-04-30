@@ -96,7 +96,7 @@ begin
   var OpenSuccess := false;
 
   const rawMetadataDbFilePath = Encoding.UTF8.GetBytes(MetadataDbFilePath);
-  var pChar := @rawMetadataDbFilePath[0];
+  const pChar = @rawMetadataDbFilePath[0];
 
   if libsqlite3.sqlite3_open(pChar as ^AnsiChar, @DbConnection) <> libsqlite3.SQLITE_OK then begin
     writeLn("error: unable to open SQLite db file '{0}'", MetadataDbFilePath);
@@ -176,7 +176,7 @@ begin
     //const rawSqlStatement = MakeCStringFromString(SqlStatement);
     const rawSqlStatement = Encoding.UTF8.GetBytes(SqlStatement);
     const pChar = @rawSqlStatement[0];
-    var rc := libsqlite3.sqlite3_prepare_v2(DbConnection,
+    const rc = libsqlite3.sqlite3_prepare_v2(DbConnection,
                                             pChar as ^AnsiChar,
                                             -1,
                                             @Statement,
@@ -197,7 +197,7 @@ method JukeboxDB.StepStatement(Statement: ^libsqlite3.sqlite3_stmt): Boolean;
 begin
   var DidSucceed := false;
   if (DbConnection <> nil) and (Statement <> nil) then begin
-    var rc := libsqlite3.sqlite3_step(Statement);
+    const rc = libsqlite3.sqlite3_step(Statement);
     if rc = libsqlite3.SQLITE_DONE then begin
       DidSucceed := true;
     end;
@@ -216,7 +216,7 @@ begin
     exit false;
   end;
 
-  var Stmt := PrepareStatement(SqlStatement);
+  const Stmt = PrepareStatement(SqlStatement);
   if Stmt = nil then begin
     RowsAffectedCount := 0;
     exit false;
@@ -225,7 +225,7 @@ begin
   var rc: Integer;
 
   try
-    var queryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
+    const queryCount = libsqlite3.sqlite3_bind_parameter_count(Stmt);
 
     if 0 <> queryCount then begin
       writeLn("Error: the bind count is not correct for the #" +
@@ -276,7 +276,7 @@ method JukeboxDB.BindStatementArguments(Stmt: ^libsqlite3.sqlite3_stmt;
                                         Arguments: PropertyList): Boolean;
 begin
   try
-    var QueryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
+    const QueryCount = libsqlite3.sqlite3_bind_parameter_count(Stmt);
 
     if Arguments.Count() <> QueryCount then begin
       writeLn("Error: the bind count is not correct for the #" +
@@ -344,7 +344,7 @@ begin
     exit false;
   end;
 
-  var Stmt := PrepareStatement(SqlStatement);
+  const Stmt = PrepareStatement(SqlStatement);
   if Stmt = nil then begin
     RowsAffectedCount := 0;
     exit false;
@@ -353,7 +353,7 @@ begin
   var rc: Integer;
 
   try
-    var QueryCount := libsqlite3.sqlite3_bind_parameter_count(Stmt);
+    const QueryCount = libsqlite3.sqlite3_bind_parameter_count(Stmt);
 
     if Arguments.Count() <> QueryCount then begin
       writeLn("Error: the bind count is not correct for the #" +
@@ -499,7 +499,7 @@ method JukeboxDB.CreateTable(SqlStatement: String): Boolean;
 begin
   var DidSucceed := false;
   if DbConnection <> nil then begin
-    var Stmt := PrepareStatement(SqlStatement);
+    const Stmt = PrepareStatement(SqlStatement);
     if Stmt = nil then begin
       writeLn("prepare of statement failed: {0}", SqlStatement);
       exit false;
@@ -593,14 +593,14 @@ begin
     const SqlQuery = "SELECT COUNT(*) " +
                      "FROM sqlite_master " +
                      "WHERE type='table' AND name='song'";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt = nil then begin
       exit false;
     end;
 
     try
       if libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW then begin
-        var Count := libsqlite3.sqlite3_column_int(Stmt, 0);
+        const Count = libsqlite3.sqlite3_column_int(Stmt, 0);
         if Count > 0 then begin
           HaveTablesInDb := true;
         end;
@@ -623,14 +623,14 @@ begin
     const SqlQuery = "SELECT playlist_uid " +
                      "FROM playlist " +
                      "WHERE playlist_name = ?";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt = nil then begin
       exit nil;
     end;
 
     try
       if libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW then begin
-        var QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        const QueryResultCol1 = libsqlite3.sqlite3_column_text(Stmt, 0);
         if QueryResultCol1 <> nil then begin
           PlObject := MakeStringFromCString(QueryResultCol1);
         end;
@@ -646,12 +646,12 @@ end;
 
 method JukeboxDB.SongsForQueryResults(Statement: ^libsqlite3.sqlite3_stmt): List<SongMetadata>;
 begin
-  var ResultSongs := new List<SongMetadata>();
+  const ResultSongs = new List<SongMetadata>();
 
   var rc := libsqlite3.sqlite3_step(Statement);
 
   while (rc <> libsqlite3.SQLITE_DONE) and (rc <> libsqlite3.SQLITE_OK) do begin
-    var song := new SongMetadata();
+    const song = new SongMetadata();
     song.Fm.FileUid := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 0));
     song.Fm.FileTime := MakeStringFromCString(libsqlite3.sqlite3_column_text(Statement, 1));
     song.Fm.OriginFileSize := libsqlite3.sqlite3_column_int64(Statement, 2);
@@ -698,7 +698,7 @@ begin
                               "album_uid " +
                        "FROM song " +
                        "WHERE song_uid = ?";
-      var Stmt := PrepareStatement(SqlQuery);
+      const Stmt = PrepareStatement(SqlQuery);
       if Stmt = nil then begin
         writeLn("error: unable to prepare statement");
         exit nil;
@@ -708,7 +708,7 @@ begin
       end;
     end;
 
-    var Args := new PropertyList;
+    const Args = new PropertyList;
     Args.Append(new PropertyValue(SongUid));
     if not BindStatementArguments(PsRetrieveSong, Args) then begin
       writeLn("error: unable to bind arguments");
@@ -716,13 +716,13 @@ begin
     end;
 
     try
-      var SongResults := SongsForQueryResults(PsRetrieveSong);
+      const SongResults = SongsForQueryResults(PsRetrieveSong);
       if SongResults.Count > 0 then begin
         Song := SongResults[0];
       end;
     finally
-      const rc2 = libsqlite3.sqlite3_reset(PsRetrieveSong);
-      const rc1 = libsqlite3.sqlite3_clear_bindings(PsRetrieveSong);
+      libsqlite3.sqlite3_reset(PsRetrieveSong);
+      libsqlite3.sqlite3_clear_bindings(PsRetrieveSong);
     end;
   end;
   exit Song;
@@ -746,7 +746,7 @@ begin
 
     const SqlStatement = "INSERT INTO playlist VALUES (?,?,?)";
 
-    var Args := new PropertyList;
+    const Args = new PropertyList;
     Args.Append(new PropertyValue(PlUid));
     Args.Append(new PropertyValue(PlName));
     Args.Append(new PropertyValue(PlDesc));
@@ -776,7 +776,7 @@ begin
 
     const SqlQuery = "DELETE FROM playlist WHERE playlist_name = ?";
 
-    var Args := new PropertyList;
+    const Args = new PropertyList;
     Args.Append(new PropertyValue(PlName));
     var RowsAffected: Int32 := 0;
 
@@ -802,7 +802,7 @@ begin
       exit false;
     end;
 
-    var Args := new PropertyList();
+    const Args = new PropertyList();
     Args.Append(new PropertyValue(Song.Fm.FileUid));
     Args.Append(new PropertyValue(Song.Fm.FileTime));
     Args.Append(new PropertyValue(Song.Fm.OriginFileSize));
@@ -843,7 +843,7 @@ begin
       exit false;
     end;
 
-    var Args := new PropertyList();
+    const Args = new PropertyList();
     Args.Append(new PropertyValue(Song.Fm.FileTime));
     Args.Append(new PropertyValue(Song.Fm.OriginFileSize));
     Args.Append(new PropertyValue(Song.Fm.StoredFileSize));
@@ -892,7 +892,7 @@ end;
 
 method JukeboxDB.StoreSongMetadata(Song: SongMetadata): Boolean;
 begin
-  var DbSong := RetrieveSong(Song.Fm.FileUid);
+  const DbSong = RetrieveSong(Song.Fm.FileUid);
   if DbSong <> nil then begin
     if Song <> DbSong then begin
       exit UpdateSong(Song);
@@ -939,9 +939,9 @@ begin
     SqlQuery := SqlQuery + SqlWhereClause();
     var AddedClause: String;
     if Artist.Length > 0 then begin
-      var EncodedArtist := JBUtils.EncodeValue(Artist);
+      const EncodedArtist = JBUtils.EncodeValue(Artist);
       if Album.Length > 0 then begin
-        var EncodedAlbum := JBUtils.EncodeValue(Album);
+        const EncodedAlbum = JBUtils.EncodeValue(Album);
         AddedClause := String.Format(" AND object_name LIKE '{0}--{1}%%'",
                                      EncodedArtist,
                                      EncodedAlbum);
@@ -957,7 +957,7 @@ begin
       writeLn("executing query: {0}", SqlQuery);
     end;
 
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt <> nil then begin
       try
         Songs := SongsForQueryResults(Stmt);
@@ -993,7 +993,7 @@ begin
                     "FROM song";
     SqlQuery := SqlQuery + SqlWhereClause;
     SqlQuery := SqlQuery + " AND artist = ?";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt <> nil then begin
       try
         Songs := SongsForQueryResults(Stmt);
@@ -1013,7 +1013,7 @@ begin
     const SqlQuery = "SELECT artist_name, song_name " +
                      "FROM song " +
                      "ORDER BY artist_name, song_name";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt = nil then begin
       writeLn("error: unable to prepare query: " + SqlQuery);
       exit;
@@ -1021,8 +1021,8 @@ begin
 
     try
       while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-        var QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-        var QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
+        const QueryResultCol1 = libsqlite3.sqlite3_column_text(Stmt, 0);
+        const QueryResultCol2 = libsqlite3.sqlite3_column_text(Stmt, 1);
         if (QueryResultCol1 <> nil) and (QueryResultCol2 <> nil) then begin
           const Artist = MakeStringFromCString(QueryResultCol1);
           const Song = MakeStringFromCString(QueryResultCol2);
@@ -1046,14 +1046,14 @@ begin
     const SqlQuery = "SELECT DISTINCT artist_name " +
                      "FROM song " +
                      "ORDER BY artist_name";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt = nil then begin
       exit;
     end;
 
     try
       while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-        var QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        const QueryResultCol1 = libsqlite3.sqlite3_column_text(Stmt, 0);
         if QueryResultCol1 <> nil then begin
           const Artist = MakeStringFromCString(QueryResultCol1);
           writeLn(Artist);
@@ -1073,14 +1073,14 @@ begin
     const SqlQuery = "SELECT genre_name " +
                      "FROM genre " +
                      "ORDER BY genre_name";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt = nil then begin
       exit;
     end;
 
     try
       while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-        var QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        const QueryResultCol1 = libsqlite3.sqlite3_column_text(Stmt, 0);
         if QueryResultCol1 <> nil then begin
           const GenreName = MakeStringFromCString(QueryResultCol1);
           writeLn(GenreName);
@@ -1101,15 +1101,15 @@ begin
                      "FROM album, artist " +
                      "WHERE album.artist_uid = artist.artist_uid " +
                      "ORDER BY album.album_name";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt = nil then begin
       exit;
     end;
 
     try
       while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-        var QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
-        var QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
+        const QueryResultCol1 = libsqlite3.sqlite3_column_text(Stmt, 0);
+        const QueryResultCol2 = libsqlite3.sqlite3_column_text(Stmt, 1);
         if (QueryResultCol1 <> nil) and (QueryResultCol2 <> nil) then begin
           const AlbumName = MakeStringFromCString(QueryResultCol1);
           const ArtistName = MakeStringFromCString(QueryResultCol2);
@@ -1130,19 +1130,19 @@ begin
     const SqlQuery = "SELECT playlist_uid, playlist_name " +
                      "FROM playlist " +
                      "ORDER BY playlist_uid";
-    var Stmt := PrepareStatement(SqlQuery);
+    const Stmt = PrepareStatement(SqlQuery);
     if Stmt = nil then begin
       exit;
     end;
 
     try
       while libsqlite3.sqlite3_step(Stmt) = libsqlite3.SQLITE_ROW do begin
-        var QueryResultCol1 := libsqlite3.sqlite3_column_text(Stmt, 0);
+        const QueryResultCol1 = libsqlite3.sqlite3_column_text(Stmt, 0);
         if QueryResultCol1 = nil then begin
           writeLn("Query result is nil");
           exit;
         end;
-        var QueryResultCol2 := libsqlite3.sqlite3_column_text(Stmt, 1);
+        const QueryResultCol2 = libsqlite3.sqlite3_column_text(Stmt, 1);
         if QueryResultCol2 = nil then begin
           writeLn("Query result is nil");
           exit;
@@ -1170,7 +1170,7 @@ begin
         exit false;
       end;
 
-      var ArgList := new PropertyList;
+      const ArgList = new PropertyList;
       ArgList.Append(new PropertyValue(SongUid));
 
       const SqlStatement = "DELETE FROM song WHERE song_uid = ?";
