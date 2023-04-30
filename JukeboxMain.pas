@@ -16,7 +16,6 @@ type
     Directory: String;
 
   public
-    //const MetadataFileSuffix = '.meta';
     const ARG_PREFIX           = "--";
     const ARG_DEBUG            = "debug";
     const ARG_FILE_CACHE_COUNT = "file-cache-count";
@@ -115,7 +114,8 @@ begin
     exit new FSStorageSystem(RootDir, DebugMode);
   end
   else begin
-    writeLn("error: '{0}' must be specified in {1}{2}", FS_ROOT_DIR, SS_FS, CREDS_FILE_SUFFIX);
+    writeLn("error: '{0}' must be specified in {1}{2}",
+            FS_ROOT_DIR, SS_FS, CREDS_FILE_SUFFIX);
     exit nil;
   end;
 end;
@@ -256,19 +256,13 @@ begin
     jukebox.ShowAlbums();
   end
   else if Command = CMD_SHOW_ALBUM then begin
-    if Artist.Length > 0 then begin
-      if Album.Length > 0 then begin
-        jukebox.ShowAlbum(Artist, Album);
-      end
-      else begin
-        writeLn("error: album must be specified using {0}{1} option",
-                ARG_PREFIX, ARG_ALBUM);
-        ExitCode := 1;
-      end;
+    if (Artist.Length > 0) and (Album.Length > 0) then begin
+      jukebox.ShowAlbum(Artist, Album);
     end
     else begin
-      writeLn("error: artist must be specified using {0}{1} option",
-              ARG_PREFIX, ARG_ARTIST);
+      writeLn("error: artist and album must be specified using {0}{1} and {2}{3} options",
+              ARG_PREFIX, ARG_ARTIST, ARG_PREFIX, ARG_ALBUM);
+      ExitCode := 1;
     end;
   end
   else if Command = CMD_LIST_PLAYLISTS then begin
@@ -547,6 +541,8 @@ begin
     NonHelpCommands.Add(CMD_UPLOAD_METADATA_DB);
     NonHelpCommands.Add(CMD_IMPORT_ALBUM_ART);
 
+    // Commands that will alter the cloud storage (or content)
+    // These commands may require a different set of credentials
     UpdateCommands := new StringSet;
     UpdateCommands.Add(CMD_IMPORT_SONGS);
     UpdateCommands.Add(CMD_IMPORT_PLAYLISTS);
