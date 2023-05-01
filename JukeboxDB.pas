@@ -177,10 +177,10 @@ begin
     const rawSqlStatement = Encoding.UTF8.GetBytes(SqlStatement);
     const pChar = @rawSqlStatement[0];
     const rc = libsqlite3.sqlite3_prepare_v2(DbConnection,
-                                            pChar as ^AnsiChar,
-                                            -1,
-                                            @Statement,
-                                            nil);
+                                             pChar as ^AnsiChar,
+                                             -1,
+                                             @Statement,
+                                             nil);
     if rc = libsqlite3.SQLITE_OK then begin
       exit Statement;
     end
