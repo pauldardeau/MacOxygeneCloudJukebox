@@ -1682,7 +1682,7 @@ end;
 
 method Jukebox.PlayAlbum(Artist: String; Album: String);
 begin
-  //TODO: implement PlayAlbum
+  PlaySongs(false, Artist, Album);
 end;
 
 //*******************************************************************************

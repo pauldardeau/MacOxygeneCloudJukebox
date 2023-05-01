@@ -265,6 +265,16 @@ begin
       ExitCode := 1;
     end;
   end
+  else if Command = CMD_PLAY_ALBUM then begin
+    if (Artist.Length > 0) and (Album.Length > 0) then begin
+      jukebox.PlayAlbum(Artist, Album);
+    end
+    else begin
+      writeLn("error: artist and album must be specified using {0}{1} and {2}{3} options",
+              ARG_PREFIX, ARG_ARTIST, ARG_PREFIX, ARG_ALBUM);
+      ExitCode := 1;
+    end;
+  end
   else if Command = CMD_LIST_PLAYLISTS then begin
     jukebox.ShowPlaylists();
   end
@@ -532,6 +542,7 @@ begin
     NonHelpCommands.Add(CMD_IMPORT_PLAYLISTS);
     NonHelpCommands.Add(CMD_LIST_PLAYLISTS);
     NonHelpCommands.Add(CMD_SHOW_ALBUM);
+    NonHelpCommands.Add(CMD_PLAY_ALBUM);
     NonHelpCommands.Add(CMD_SHOW_PLAYLIST);
     NonHelpCommands.Add(CMD_PLAY_PLAYLIST);
     NonHelpCommands.Add(CMD_DELETE_SONG);
