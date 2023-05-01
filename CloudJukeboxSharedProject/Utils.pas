@@ -506,13 +506,13 @@ type
 
     method ShuffleList(TheList: List);
     begin
-      const random = new Random;
+      const TheRandom = new Random;
       var n := TheList.Count;
       var k: Integer;
 
       while (n > 1) do begin
         dec(n);
-        var j := random.NextInt(n + 1);
+        var j := TheRandom.NextInt(n + 1);
         if j < 0 then begin
           // workaround bug
           k := -j;
@@ -520,9 +520,9 @@ type
         else begin
           k := j;
         end;
-        const value = TheList[k];
+        const Value = TheList[k];
         TheList[k] := TheList[n];
-        TheList[n] := value;
+        TheList[n] := Value;
       end;
     end;
 
