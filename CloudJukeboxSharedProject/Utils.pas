@@ -512,7 +512,7 @@ type
 
       while (n > 1) do begin
         dec(n);
-        var j := TheRandom.NextInt(n + 1);
+        const j = TheRandom.NextInt(n + 1);
         if j < 0 then begin
           // workaround bug
           k := -j;
