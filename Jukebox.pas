@@ -1214,7 +1214,7 @@ begin
         if (j >= aSongList.Count) or (j < 0) then begin
           // I think this is a bug in NextInt method. Sometimes getting
           // -1 value.
-          //writeLn("*** j = {0}, n = {1}", j, n);
+          //writeLn("*** j = {0}, arg = {1}", j, n+1);
         end
         else begin
           GettingValidRandomIndex := false;
@@ -1480,13 +1480,18 @@ begin
       {$IFDEF DARWIN}
       const AlbumJson = Deserializer.Deserialize;
       const TrackList = AlbumJson.Item["tracks"] as JsonArray;
-      const NumberTracks = TrackList.Count;
-      if NumberTracks > 0 then begin
-        for i := 0 to NumberTracks-1 do begin
-          const Track = TrackList.Item[i];
-          ListTrackObjects.Add(Track.Item["object"].ToString());
+      if TrackList <> nil then begin
+        const NumberTracks = TrackList.Count;
+        if NumberTracks > 0 then begin
+          for i := 0 to NumberTracks-1 do begin
+            const Track = TrackList.Item[i];
+            const TrackObject = Track.Item["object"];
+            if TrackObject <> nil then begin
+              ListTrackObjects.Add(TrackObject.ToString());
+            end;
+          end;
+          Success := true;
         end;
-        Success := true;
       end;
       {$ELSE}
       const Album = Deserializer.Read<Album>;
@@ -1538,39 +1543,53 @@ begin
 
       {$IFDEF DARWIN}
       const PlaylistJson = Deserializer.Deserialize;
-      const theSongList = PlaylistJson.Item["songs"] as JsonArray;
-      const plNumberSongs = theSongList.Count;
-      if plNumberSongs > 0 then begin
-        var SongsAdded := 0;
+      const TheSongList = PlaylistJson.Item["songs"] as JsonArray;
+      if TheSongList <> nil then begin
+        const plNumberSongs = TheSongList.Count;
+        if plNumberSongs > 0 then begin
+          var SongsAdded := 0;
 
-        for i := 0 to plNumberSongs-1 do begin
-          const SongJson = theSongList.Item[i];
-          const plArtist = SongJson.Item["artist"].ToString();
-          const plAlbum = SongJson.Item["album"].ToString();
-          const plSong = SongJson.Item["song"].ToString();
-          const EncodedSong = JBUtils.EncodeArtistAlbumSong(plArtist,
-                                                            plAlbum,
-                                                            plSong);
-          var SongFound := false;
+          for i := 0 to plNumberSongs-1 do begin
+            const SongJson = TheSongList.Item[i];
 
-          for each FileExtension in FileExtensions do begin
-            const SongUid = EncodedSong + FileExtension;
-            const Song = self.JukeboxDb.RetrieveSong(SongUid);
-            if Song <> nil then begin
-              ListSongs.Add(Song);
-              inc(SongsAdded);
-              SongFound := true;
-              break;
+            const ItemArtist = SongJson.Item["artist"];
+            const ItemAlbum = SongJson.Item["album"];
+            const ItemSong = SongJson.Item["song"];
+
+            if (ItemArtist <> nil) and (ItemAlbum <> nil) and (ItemSong <> nil) then begin
+              const PlArtist = ItemArtist.ToString();
+              const PlAlbum = ItemAlbum.ToString();
+              const PlSong = ItemSong.ToString();
+              const EncodedSong = JBUtils.EncodeArtistAlbumSong(PlArtist,
+                                                                PlAlbum,
+                                                                PlSong);
+              var SongFound := false;
+
+              for each FileExtension in FileExtensions do begin
+                const SongUid = EncodedSong + FileExtension;
+                const Song = self.JukeboxDb.RetrieveSong(SongUid);
+                if Song <> nil then begin
+                  ListSongs.Add(Song);
+                  inc(SongsAdded);
+                  SongFound := true;
+                  break;
+                end;
+              end;
+
+              if not SongFound then begin
+                writeLn("error: unable to retrieve metadata for '{0}'", EncodedSong);
+              end;
+            end
+            else begin
+              if DebugPrint then begin
+                writeLn("error: JSON missing one or more of ['artist', 'album', 'song']");
+              end;
             end;
           end;
 
-          if not SongFound then begin
-            writeLn("error: unable to retrieve metadata for '{0}'", EncodedSong);
+          if SongsAdded > 0 then begin
+            Success := true;
           end;
-        end;
-
-        if SongsAdded > 0 then begin
-          Success := true;
         end;
       end;
       {$ELSE}
