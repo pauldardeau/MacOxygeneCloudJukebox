@@ -76,9 +76,9 @@ begin
     MetadataDbFilePath := aMetadataDbFilePath
   else
     MetadataDbFilePath := Jukebox.DEFAULT_DB_FILE_NAME;
-  //if DebugPrint then begin
+  if DebugPrint then begin
     writeLn("JukeboxDB using file {0}", MetadataDbFilePath);
-  //end;
+  end;
 end;
 
 //*******************************************************************************
@@ -700,7 +700,7 @@ begin
                        "WHERE song_uid = ?";
       const Stmt = PrepareStatement(SqlQuery);
       if Stmt = nil then begin
-        writeLn("error: unable to prepare statement");
+        writeLn("error: unable to prepare statement: {0}", SqlQuery);
         exit nil;
       end
       else begin
@@ -711,7 +711,7 @@ begin
     const Args = new PropertyList;
     Args.Append(new PropertyValue(SongUid));
     if not BindStatementArguments(PsRetrieveSong, Args) then begin
-      writeLn("error: unable to bind arguments");
+      writeLn("error: unable to bind arguments for statement for RetrieveSong");
       exit nil;
     end;
 
