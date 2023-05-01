@@ -28,14 +28,17 @@
     <Reference Include="libToffee" />
     <Reference Include="libElements" />
     <Reference Include="libsqlite3" />
+    <Reference Include="libElementsSQLite">
+      <HintPath>..\ElementsSQLite\bin\macOS\libElementsSQLite.fx</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.pas" />
     <None Include="Entitlements.entitlements" />
-    <Compile Include="JukeboxDB.pas" />
     <Compile Include="Jukebox.pas" />
     <Compile Include="JukeboxMain.pas" />
     <Compile Include="SongDownloader.pas" />
+    <Compile Include="JukeboxDB.pas" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\RemObjects Software\Elements\RemObjects.Elements.Toffee.targets" />
   <Import Project="CloudJukeboxSharedProject\CloudJukeboxSharedProject.projitems" Label="Shared" />
