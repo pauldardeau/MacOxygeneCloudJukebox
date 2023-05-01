@@ -507,25 +507,18 @@ type
     method ShuffleList(TheList: List);
     begin
       const random = new Random;
-      const ListCount = TheList.Count;
       var n := TheList.Count;
-      var GettingValidRandomIndex: Boolean;
       var k: Integer;
 
       while (n > 1) do begin
         dec(n);
-        GettingValidRandomIndex := true;
-        while GettingValidRandomIndex do begin
-          const j = random.NextInt(n + 1);
-          if (j >= ListCount) or (j < 0) then begin
-            // I think this is a bug in NextInt method. Sometimes getting
-            // -1 value.
-            //writeLn("*** j = {0}, arg = {1}", j, n+1);
-          end
-          else begin
-            GettingValidRandomIndex := false;
-            k := j;
-          end;
+        var j := random.NextInt(n + 1);
+        if j < 0 then begin
+          // workaround bug
+          k := -j;
+        end
+        else begin
+          k := j;
         end;
         const value = TheList[k];
         TheList[k] := TheList[n];
