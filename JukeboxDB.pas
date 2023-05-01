@@ -185,7 +185,8 @@ begin
       exit Statement;
     end
     else begin
-      writeLn("error: prepare of sql failed: {0}", SqlStatement);
+      writeLn("error: prepare of sql failed, rc={0}, statement={1}",
+              rc, SqlStatement);
     end;
   end;
   exit nil;
