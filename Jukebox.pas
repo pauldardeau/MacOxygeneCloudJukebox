@@ -1201,30 +1201,7 @@ begin
   end;
 
   if Shuffle then begin
-    const random = new Random;
-    var n := aSongList.Count;
-    var GettingValidRandomIndex: Boolean;
-    var k: Integer;
-
-    while (n > 1) do begin
-      dec(n);
-      GettingValidRandomIndex := true;
-      while GettingValidRandomIndex do begin
-        const j = random.NextInt(n + 1);
-        if (j >= aSongList.Count) or (j < 0) then begin
-          // I think this is a bug in NextInt method. Sometimes getting
-          // -1 value.
-          //writeLn("*** j = {0}, arg = {1}", j, n+1);
-        end
-        else begin
-          GettingValidRandomIndex := false;
-          k := j;
-        end;
-      end;
-      const value = aSongList[k];
-      aSongList[k] := aSongList[n];
-      aSongList[n] := value;
-    end;
+    Utils.ShuffleList(aSongList);
   end;
 
   writeLn("downloading first song...");
