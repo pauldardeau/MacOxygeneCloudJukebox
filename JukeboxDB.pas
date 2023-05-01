@@ -943,12 +943,12 @@ begin
       const EncodedArtist = JBUtils.EncodeValue(Artist);
       if Album.Length > 0 then begin
         const EncodedAlbum = JBUtils.EncodeValue(Album);
-        AddedClause := String.Format(" AND object_name LIKE '{0}--{1}%%'",
+        AddedClause := String.Format(" AND object_name LIKE '{0}--{1}%'",
                                      EncodedArtist,
                                      EncodedAlbum);
       end
       else begin
-        AddedClause := String.Format(" AND object_name LIKE '{0}--%%'",
+        AddedClause := String.Format(" AND object_name LIKE '{0}--%'",
                                      EncodedArtist);
       end;
       SqlQuery := SqlQuery + AddedClause;
