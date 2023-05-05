@@ -67,7 +67,8 @@ type
     AudioPlayerExeFileName: String;
     AudioPlayerCommandArgs: String;
     AudioPlayerResumeArgs: String;
-    AudioPlayerProcess: Process;
+    PlayerRunner: AudioPlayerRunner;
+    PlayerTerminated: Boolean;
     SongPlayLengthSeconds: Integer;
     CumulativeDownloadBytes: Int64;
     CumulativeDownloadTime: Integer;
@@ -231,7 +232,8 @@ begin
   AudioPlayerExeFileName := "";
   AudioPlayerCommandArgs := "";
   AudioPlayerResumeArgs := "";
-  AudioPlayerProcess := nil;
+  PlayerRunner := nil;
+  PlayerTerminated := false;
   SongPlayLengthSeconds := 20;
   CumulativeDownloadBytes := 0;
   CumulativeDownloadTime := 0;
@@ -393,10 +395,10 @@ begin
   IsPaused := not IsPaused;
   if IsPaused then begin
     writeLn("paused");
-    if AudioPlayerProcess <> nil then begin
+    if PlayerRunner <> nil then begin
       // capture current song position (seconds into song)
-      AudioPlayerProcess.Stop();
-      AudioPlayerProcess := nil;
+      PlayerRunner.Stop;
+      PlayerTerminated := true;
     end;
   end
   else begin
@@ -409,9 +411,9 @@ end;
 method Jukebox.AdvanceToNextSong;
 begin
   writeLn("advancing to next song");
-  if AudioPlayerProcess <> nil then begin
-    AudioPlayerProcess.Stop();
-    AudioPlayerProcess := nil;
+  if PlayerRunner <> nil then begin
+    PlayerRunner.Stop;
+    PlayerTerminated := true;
   end;
 end;
 
@@ -425,9 +427,9 @@ begin
   ExitRequested := true;
 
   // terminate audio player if it's running
-  if AudioPlayerProcess <> nil then begin
-    AudioPlayerProcess.Stop();
-    AudioPlayerProcess := nil;
+  if PlayerRunner <> nil then begin
+    PlayerRunner.Stop;
+    PlayerTerminated := true;
   end;
 end;
 
@@ -847,13 +849,13 @@ begin
     writeLn("playing {0}", Song.Fm.FileUid);
     if AudioPlayerExeFileName.Length > 0 then begin
       var didResume := false;
-      var commandArgs := "";
+      var CommandArgs := "";
       if SongPlayIsResume then begin
-        const placeholder = PH_START_SONG_TIME_OFFSET;
-        const posPlaceholder =
-            AudioPlayerResumeArgs.IndexOf(placeholder);
-        if posPlaceholder > -1 then begin
-          commandArgs := AudioPlayerResumeArgs;
+        const Placeholder = PH_START_SONG_TIME_OFFSET;
+        const PosPlaceholder =
+            AudioPlayerResumeArgs.IndexOf(Placeholder);
+        if PosPlaceholder > -1 then begin
+          CommandArgs := AudioPlayerResumeArgs;
           var theSongStartTime: String := "";
           const minutes = SongSecondsOffset / 60;
           if minutes > 0 then begin
@@ -870,32 +872,35 @@ begin
             theSongStartTime := SongSecondsOffset.ToString();
           end;
           //writeLn("resuming at '{0}'", songStartTime);
-          commandArgs := commandArgs.Replace(PH_START_SONG_TIME_OFFSET, theSongStartTime);
-          commandArgs := commandArgs.Replace(PH_AUDIO_FILE_PATH, SongFilePath);
+          CommandArgs := CommandArgs.Replace(PH_START_SONG_TIME_OFFSET, theSongStartTime);
+          CommandArgs := CommandArgs.Replace(PH_AUDIO_FILE_PATH, SongFilePath);
           didResume := true;
-          //writeLn("commandArgs: '{0}'", commandArgs);
+          //writeLn("CommandArgs: '{0}'", CommandArgs);
         end;
       end;
 
       if not didResume then begin
-        commandArgs := AudioPlayerCommandArgs;
-        commandArgs := commandArgs.Replace(PH_AUDIO_FILE_PATH, SongFilePath);
+        CommandArgs := AudioPlayerCommandArgs;
+        CommandArgs := CommandArgs.Replace(PH_AUDIO_FILE_PATH, SongFilePath);
       end;
 
-      const Args = commandArgs.Split(" ");
-      const Env = new Dictionary<String,String>();
+      const Args = CommandArgs.Split(" ");
+      PlayerRunner := new AudioPlayerRunner(AudioPlayerExeFileName,
+                                            SongPlayDirPath,
+                                            Args);
+      PlayerRunner.PlaySong;
+      if not PlayerTerminated then begin
+        ExitCode := PlayerRunner.GetExitCode;
+        PlayerRunner := nil;
 
-      AudioPlayerProcess := new Process();
-      ExitCode := AudioPlayerProcess.Run(AudioPlayerExeFileName,
-                                         Args,
-                                         Env,
-                                         SongPlayDirPath);
-      AudioPlayerProcess := nil;
-
-      // if the audio player failed or is not present, just sleep
-      // for the length of time that audio would be played
-      if ExitCode <> 0 then begin
-        Utils.SleepSeconds(SongPlayLengthSeconds);
+        // if the audio player failed or is not present, just sleep
+        // for the length of time that audio would be played
+        if ExitCode <> 0 then begin
+          Utils.SleepSeconds(SongPlayLengthSeconds);
+        end;
+      end
+      else begin
+        PlayerRunner := nil;
       end;
     end
     else begin

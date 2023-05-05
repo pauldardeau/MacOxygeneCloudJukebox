@@ -23,5 +23,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)StorageSystem.pas" />
     <Compile Include="$(MSBuildThisFileDirectory)FSStorageSystem.pas" />
     <Compile Include="$(MSBuildThisFileDirectory)S3ExtStorageSystem.pas" />
+    <Compile Include="$(MSBuildThisFileDirectory)AudioPlayerRunner.pas" />
   </ItemGroup>
 </Project>
