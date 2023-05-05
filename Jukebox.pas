@@ -885,6 +885,7 @@ begin
       end;
 
       const Args = CommandArgs.Split(" ");
+      PlayerTerminated := false;
       PlayerRunner := new AudioPlayerRunner(AudioPlayerExeFileName,
                                             SongPlayDirPath,
                                             Args);
@@ -900,6 +901,7 @@ begin
         end;
       end
       else begin
+        PlayerTerminated := false;
         PlayerRunner := nil;
       end;
     end
