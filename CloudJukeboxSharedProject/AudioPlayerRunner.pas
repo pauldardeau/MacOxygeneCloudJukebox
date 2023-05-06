@@ -15,6 +15,7 @@ type
     StdOut: String;
     StdErr: String;
     ExitCode: Int32;
+    Terminated: Boolean;
 
   public
     constructor(aAudioPlayerPath: String;
@@ -28,6 +29,7 @@ type
     method GetStdOut: String;
     method GetStdErr: String;
     method Stop;
+    method WasTerminated: Boolean;
   end;
 
 //*******************************************************************************
@@ -46,6 +48,7 @@ begin
   StdOut := '';
   StdErr := '';
   ExitCode := -1;
+  Terminated := false;
 end;
 
 //*******************************************************************************
@@ -115,7 +118,15 @@ method AudioPlayerRunner.Stop;
 begin
   if AudioPlayerProcess <> nil then begin
     AudioPlayerProcess.Stop;
+    Terminated := true;
   end;
+end;
+
+//*******************************************************************************
+
+method AudioPlayerRunner.WasTerminated: Boolean;
+begin
+  exit Terminated;
 end;
 
 //*******************************************************************************

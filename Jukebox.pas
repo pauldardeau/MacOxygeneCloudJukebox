@@ -68,7 +68,6 @@ type
     AudioPlayerCommandArgs: String;
     AudioPlayerResumeArgs: String;
     PlayerRunner: AudioPlayerRunner;
-    PlayerTerminated: Boolean;
     SongPlayLengthSeconds: Integer;
     CumulativeDownloadBytes: Int64;
     CumulativeDownloadTime: Integer;
@@ -233,7 +232,6 @@ begin
   AudioPlayerCommandArgs := "";
   AudioPlayerResumeArgs := "";
   PlayerRunner := nil;
-  PlayerTerminated := false;
   SongPlayLengthSeconds := 20;
   CumulativeDownloadBytes := 0;
   CumulativeDownloadTime := 0;
@@ -398,7 +396,6 @@ begin
     if PlayerRunner <> nil then begin
       // capture current song position (seconds into song)
       PlayerRunner.Stop;
-      PlayerTerminated := true;
     end;
   end
   else begin
@@ -413,7 +410,6 @@ begin
   writeLn("advancing to next song");
   if PlayerRunner <> nil then begin
     PlayerRunner.Stop;
-    PlayerTerminated := true;
   end;
 end;
 
@@ -429,7 +425,6 @@ begin
   // terminate audio player if it's running
   if PlayerRunner <> nil then begin
     PlayerRunner.Stop;
-    PlayerTerminated := true;
   end;
 end;
 
@@ -841,8 +836,6 @@ end;
 
 method Jukebox.PlaySong(Song: SongMetadata);
 begin
-  var ExitCode := -1;
-
   const SongFilePath = SongPathInPlaylist(Song);
 
   if Utils.FileExists(SongFilePath) then begin
@@ -885,25 +878,11 @@ begin
       end;
 
       const Args = CommandArgs.Split(" ");
-      PlayerTerminated := false;
       PlayerRunner := new AudioPlayerRunner(AudioPlayerExeFileName,
                                             SongPlayDirPath,
                                             Args);
       PlayerRunner.PlaySong;
-      if not PlayerTerminated then begin
-        ExitCode := PlayerRunner.GetExitCode;
-        PlayerRunner := nil;
-
-        // if the audio player failed or is not present, just sleep
-        // for the length of time that audio would be played
-        if ExitCode <> 0 then begin
-          Utils.SleepSeconds(SongPlayLengthSeconds);
-        end;
-      end
-      else begin
-        PlayerTerminated := false;
-        PlayerRunner := nil;
-      end;
+      PlayerRunner := nil;
     end
     else begin
       // we don't know about an audio player, so simulate a
