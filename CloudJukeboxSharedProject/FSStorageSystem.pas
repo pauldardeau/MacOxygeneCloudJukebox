@@ -276,7 +276,7 @@ method FSStorageSystem.DeleteObject(ContainerName: String;
                                     ObjectName: String): Boolean;
 begin
   var ObjectDeleted := false;
-  if ContainerName.Length > 0 and ObjectName.Length > 0 then begin
+  if (ContainerName.Length > 0) and (ObjectName.Length > 0) then begin
     const ContainerDir = Utils.PathJoin(RootDir, ContainerName);
     const ObjectPath = Utils.PathJoin(ContainerDir, ObjectName);
 
