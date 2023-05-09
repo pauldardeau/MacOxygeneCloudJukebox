@@ -550,18 +550,18 @@ method JukeboxDB.StoreSongMetadata(Song: SongMetadata): Boolean;
 begin
   const DbSong = RetrieveSong(Song.Fm.FileUid);
   if DbSong <> nil then begin
-  if Song <> DbSong then begin
-    exit UpdateSong(Song);
-      end
-    else begin
-    exit true;  // no insert or update needed (already up-to-date)
-      end;
+    if Song <> DbSong then begin
+      exit UpdateSong(Song);
     end
+    else begin
+      exit true;  // no insert or update needed (already up-to-date)
+    end;
+  end
   else begin
     // song is not in the database, insert it
     exit InsertSong(Song);
-    end;
   end;
+end;
 
 //*******************************************************************************
 
