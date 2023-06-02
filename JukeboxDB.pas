@@ -223,7 +223,7 @@ begin
 
     const createAlbumTable = "CREATE TABLE album (" +
                              "album_uid TEXT UNIQUE NOT NULL," +
-                             "album_name TEXT UNIQUE NOT NULL," +
+                             "album_name UNIQUE NOT NULL," +
                              "album_description TEXT," +
                              "artist_uid TEXT NOT NULL REFERENCES artist(artist_uid)," +
                              "genre_uid TEXT REFERENCES genre(genre_uid));";
